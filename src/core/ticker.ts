@@ -1,5 +1,7 @@
+/**
+ * 渲染循环类，用于管理循环回调的注册与执行
+*/
 type TickerCallback = (elapsed: number, delta: number) => void;
-
 export class Ticker {
   private _lastTime: number = 0;
   private _startTime: number = 0;
@@ -53,9 +55,9 @@ export class Ticker {
 
     this._lastTime = currentTime;
 
-    // --- 更新 FPS 统计逻辑 ---
+    // FPS 统计
     this._frameCount++;
-    // 每 500ms 计算一次平均值，保证 UI 显示稳定
+    // 每 500ms 计算一次平均值
     if (currentTime - this._lastFpsUpdateTime >= 500) {
       this._fps = Math.round(
         (this._frameCount * 1000) / (currentTime - this._lastFpsUpdateTime)

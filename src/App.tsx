@@ -1,41 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { CyanEngine } from './core/engine';
+import React, { useEffect, useRef } from 'react';
+import { CyanEngine } from './core/Engine';
+import { RectNode } from './core/nodes/RectNode';
+import { CrossAxisAlignment, MainAxisAlignment } from './core/types/container';
+import { ColumnNode } from './core/nodes/ColumnNode';
 
 const App = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [displayFps, setDisplayFps] = useState(0);
 
   useEffect(() => {
-    const engine = new CyanEngine({ canvas: canvasRef.current! });
+    if (!canvasRef.current) return;
+
+    const engine = new CyanEngine({ canvas: canvasRef.current });
+
+
+    const row = new ColumnNode();
+    row.crossAxisAlignment = CrossAxisAlignment.Center;
+    row.mainAxisAlignment = MainAxisAlignment.Center;
+    engine.root = row;
+
+    const icon = new RectNode('blue', 40, 40); // 固定宽度
+    icon.flex = 0;
+    const searchBar = new RectNode('green', 10, 60); 
+
+
+    const button = new RectNode('red', 80, 40); // 固定宽度
+
+    row.add(icon);
+    row.add(searchBar);
+    row.add(button);
+
     
-    // 模拟一些渲染负载
+    // 启动引擎
+    engine.markNeedsPaint();
     engine.start();
-
-    // 每一帧都获取最新的 FPS 并同步给 React 状态
-    const updateStats = () => {
-      // 只有在数值变化时才触发 React 渲染
-      const currentFps = engine.ticker.getFPS();
-      setDisplayFps(currentFps);
-      
-      // 强制引擎持续工作以便观察最高 FPS
-      engine.markNeedsPaint(); 
-    };
-
-    engine.ticker.add(updateStats);
 
     return () => engine.stop();
   }, []);
 
-  return (
-    <div style={{ background: '#222', height: '100vh', position: 'relative' }}>
-      <div style={{
-        position: 'absolute', top: 10, left: 10, color: '#0f0',
-        fontFamily: 'monospace', fontSize: '20px', pointerEvents: 'none'
-      }}>
-        FPS: {displayFps}
-      </div>
-      <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
-    </div>
-  );
+  return <canvas ref={canvasRef} style={{ width: '800px', height: '600px', background: '#000' }} />;
 };
 export default App;
