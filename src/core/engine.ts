@@ -1,5 +1,5 @@
 import { Ticker } from './Ticker';
-import { RenderNode } from './RenderNode'; // 假设你已有或将有这个基类
+import { RenderNode } from './RenderNode';
 
 export interface EngineOptions {
   // 画布
@@ -19,6 +19,8 @@ export class CyanEngine {
   public ticker: Ticker;
   // 脏检查：是否需要重新渲染
   private _isDirty: boolean = true;
+  // 记录所有需要重绘的节点
+  private _dirtyNodes: Set<RenderNode> = new Set();
   // 离屏渲染画布
   private _offscreenCanvas: HTMLCanvasElement;
   // 离屏渲染上下文
@@ -47,9 +49,10 @@ export class CyanEngine {
     this.ticker.add((elapsed, delta) => {
       // 只有在需要更新时才执行重绘，节省能耗
       if(this.root &&this.root._isDirty) {
+        (this.root as any).engine = this;
         this._frameCount++;
         this.runPipeline(delta);
-        this.resetDirtyStatus(this.root);
+        this.resetDirtyStatus();
       }
     });
   }
@@ -57,9 +60,17 @@ export class CyanEngine {
   /**
    * 递归重置标记
   */
- private resetDirtyStatus(node: RenderNode) {
-  (node as any)._isDirty = false;
-  node.children.forEach(child => this.resetDirtyStatus(child));
+ private resetDirtyStatus() {
+   // 原有的 resetDirtyStatus 改为安全递归，跳过 null/undefined 节点
+   const safeReset = (node: any) => {
+     if (!node) return;
+     node._isDirty = false;
+     node._hasDirtyChild = false;
+     if (Array.isArray(node.children)) {
+       node.children.forEach((child: any) => safeReset(child));
+     }
+   };
+   safeReset(this.root);
  }
 
 
@@ -67,20 +78,19 @@ export class CyanEngine {
    * 初始化事件
   */
   private initEvent() {
-    this.canvas.addEventListener('click', (e:MouseEvent) => {
-      if(!this.root) return;
-      //获取相对坐标
+    this.canvas.addEventListener('click', (e: MouseEvent) => {
+      if (!this.root) return;
+
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      // 命中测试
+
+      // 🚩 关键修复：计算点击位置相对于 Canvas 逻辑尺寸的比例
+      // 逻辑坐标 = (点击坐标 - 偏移) * (设计宽度 / 实际显示宽度)
+      const x = (e.clientX - rect.left) * (this.canvas.width / (rect.width * window.devicePixelRatio));
+      const y = (e.clientY - rect.top) * (this.canvas.height / (rect.height * window.devicePixelRatio));
+
       const target = this.root.hitTest(x, y);
-      if(target && target.onClick) {
-        target.onClick(e);
-        // 点击后可能改变了状态，标记需要重绘
-        this.markNeedsPaint();
-      }
-    })
+      if (target && target.onClick) target.onClick(e);
+    });
   }
 
   /**
@@ -171,12 +181,26 @@ private runPipeline(delta: number) {
   /**
    * 当状态改变时，通知引擎需要刷新
    */
-  public markNeedsPaint() {
-    this._isDirty = true;
+  public markNeedsPaint(node: RenderNode) {
+    if (!this.root) return;
+    const cw = this.canvas?.width || 0;
+    const ch = this.canvas?.height || 0;
+    const constraints = { minWidth: 0, maxWidth: cw, minHeight: 0, maxHeight: ch };
+    try { this.root.layout(constraints); } catch (e) { /* ignore layout errors */ }
+    try {
+      const ctx = this.canvas!.getContext('2d')!;
+      ctx.clearRect(0, 0, cw, ch);
+      this.root.paint(ctx);
+    } catch (e) { /* ignore paint errors */ }
   }
 
   
   public start() {
+    if (!this.root) {
+      console.warn('[engine] start called but root is null, skipping ticker start');
+      return;
+    }
+    this.resetDirtyStatus();
     this.ticker.start();
   }
 

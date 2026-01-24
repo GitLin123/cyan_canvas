@@ -1,5 +1,5 @@
 // Test.ts
-import { CyanEngine } from '../core/Engine';
+import { CyanEngine } from '../core/engine';
 import { RectNode } from '../core/nodes/RectNode'; // 假设你已实现的矩形节点
 
 export function runStressTest(canvas: HTMLCanvasElement) {
@@ -9,7 +9,7 @@ export function runStressTest(canvas: HTMLCanvasElement) {
   const sceneWidth = canvas.width / (window.devicePixelRatio || 1);
   const sceneHeight = canvas.height / (window.devicePixelRatio || 1);
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 5000; i++) {
     const rect = new RectNode(
       `hsl(${Math.random() * 360}, 50%, 50%)`, // 随机颜色
       20, 20

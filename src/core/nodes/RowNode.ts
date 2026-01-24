@@ -8,82 +8,94 @@ export class RowNode extends RenderNode {
   }
 
   performLayout(constraints: BoxConstraints): Size {
-    // 1. 计算所有 Flex 节点个数
-    const totalFlexNodes = this.children.reduce((sum, child) => sum + (child.flex || 0), 0);
-    
-    // 1. 第一次遍历：布局固定节点，计算已用宽度
-    let fixedWidth = 0;
+    const containerWidth = this.width || constraints.maxWidth;
+    const containerHeight = this.height || constraints.maxHeight;
+
+    // 1) 统计 flex 并先给非 flex 子项做 layout，收集尺寸
+    const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
+    let usedWidth = 0;
     let maxHeight = 0;
     this.children.forEach(child => {
       if (!child.flex) {
-        child.layout(constraints);
-        fixedWidth += child.width;
+        child.layout({
+          minWidth: constraints.minWidth,
+          maxWidth: containerWidth,
+          minHeight: constraints.minHeight,
+          maxHeight: containerHeight
+        });
+        usedWidth += child.width;
         maxHeight = Math.max(maxHeight, child.height);
       }
     });
-  
-    // 2. 计算剩余空间分配给 Flex 节点
-    const remainingSpace = Math.max(0, constraints.maxWidth - fixedWidth);
-    const flexUnit = totalFlexNodes > 0 ? remainingSpace / totalFlexNodes : 0;
-  
-    // 3. 第二次遍历：布局节点并计算坐标
-    let currentX = 0;
-    // 如果没有 Flex 且是对齐模式，计算起始 X
-    if (totalFlexNodes === 0) {
-      if (this.mainAxisAlignment === MainAxisAlignment.Center) currentX = remainingSpace / 2;
-      if (this.mainAxisAlignment === MainAxisAlignment.End) currentX = remainingSpace;
-    }
-  
-    // 计算节点之间的间距（没有flex节点时）
-    const gap = (totalFlexNodes === 0 && this.mainAxisAlignment === MainAxisAlignment.SpaceBetween && this.children.length > 1) 
-                ? remainingSpace / (this.children.length - 1) : 0;
-  
-    // 4. 应用节点坐标
+
+    // 2) 分配给 flex 子项宽度并 layout
+    const remaining = Math.max(0, containerWidth - usedWidth);
+    const flexUnit = totalFlexNodes > 0 ? remaining / totalFlexNodes : 0;
     this.children.forEach(child => {
-      // --- 1. 计算交叉轴(高度)约束 ---
-      let minH = 0;
-      let maxH = constraints.maxHeight;
-      
-      if (this.crossAxisAlignment === CrossAxisAlignment.Stretch) {
-        minH = maxH; // 强制拉升
-      }
-    
-      // --- 2. 计算主轴(宽度)约束并执行单次布局 ---
       if (child.flex) {
-        // 弹性节点：同时锁定宽度和(如果是Stretch的话)高度
-        const childW = child.flex * flexUnit;
-        child.layout({ 
-          minWidth: childW, 
-          maxWidth: childW, 
-          minHeight: minH, 
-          maxHeight: maxH 
+        const alloc = Math.max(0, Math.floor((child.flex || 0) * flexUnit));
+        child.layout({
+          minWidth: alloc,
+          maxWidth: alloc,
+          minHeight: constraints.minHeight,
+          maxHeight: containerHeight
         });
-      } else {
-        // 固定节点：如果是 Stretch，需要重新布局以匹配高度
-        if (this.crossAxisAlignment === CrossAxisAlignment.Stretch) {
-            child.layout({ 
-              ...constraints, 
-              minHeight: minH, 
-              maxHeight: maxH 
-            });
-        }
+        usedWidth += child.width;
+        maxHeight = Math.max(maxHeight, child.height);
       }
-    
-      // --- 3. 设置位置 ---
-      child.x = currentX;
-      if(this.crossAxisAlignment === CrossAxisAlignment.Start || this.crossAxisAlignment === CrossAxisAlignment.Stretch) {
-        child.y = 0;
-      } else if(this.crossAxisAlignment === CrossAxisAlignment.Center) {
-        child.y = (constraints.maxHeight - child.height) / 2;
-      } else if(this.crossAxisAlignment === CrossAxisAlignment.End) {
-        child.y = constraints.maxHeight - child.height;
-      }
-      
-      currentX += child.width + gap;
-      maxHeight = Math.max(maxHeight, child.height);
     });
-  
-    return { width: constraints.maxWidth, height: maxHeight };
+
+    // 3) 根据 mainAxisAlignment 计算起始偏移和间隙
+    const childCount = this.children.length;
+    let offsetX = 0;
+    let gap = 0;
+    switch (this.mainAxisAlignment) {
+      case MainAxisAlignment.End:
+        offsetX = Math.max(0, containerWidth - usedWidth);
+        break;
+      case MainAxisAlignment.Center:
+        offsetX = Math.max(0, Math.floor((containerWidth - usedWidth) / 2));
+        break;
+      case MainAxisAlignment.SpaceBetween:
+        gap = childCount > 1 ? (containerWidth - usedWidth) / (childCount - 1) : 0;
+        offsetX = 0;
+        break;
+      case MainAxisAlignment.Start:
+      default:
+        offsetX = 0;
+    }
+
+    // 4) 放置子节点并处理交叉轴对齐
+    this.children.forEach(child => {
+      // 水平主轴位置
+      child.x = Math.floor(offsetX);
+
+      // 垂直对齐
+      switch (this.crossAxisAlignment) {
+        case CrossAxisAlignment.Center:
+          child.y = Math.floor((containerHeight - child.height) / 2);
+          break;
+        case CrossAxisAlignment.End:
+          child.y = Math.floor(containerHeight - child.height);
+          break;
+        case CrossAxisAlignment.Stretch:
+          child.layout({
+            minWidth: child.width,
+            maxWidth: child.width,
+            minHeight: containerHeight,
+            maxHeight: containerHeight
+          });
+          child.y = 0;
+          break;
+        case CrossAxisAlignment.Start:
+        default:
+          child.y = 0;
+      }
+
+      offsetX += child.width + gap;
+    });
+
+    return { width: containerWidth, height: containerHeight };
   }
 
   paintSelf(ctx: CanvasRenderingContext2D): void {
