@@ -7,6 +7,8 @@ export type RectProps = {
   width?: number;
   height?: number;
   color?: string;
+  flex?: number;
+  borderRadius?: number;
   onClick?: (e: MouseEvent) => void;
 };
 
@@ -36,6 +38,11 @@ export type ContainerProps = {
   color?: string;
   width?: number;
   height?: number;
+  padding?: number;
+  margin?: number;
+  border?: number;
+  borderRadius?: number;
+  borderColor?: string;
   onClick?: (e: MouseEvent) => void;
 };
 
@@ -49,3 +56,34 @@ export const Rect = createCyanComponent<RectProps>('cyan-rect');
 export const Column = createCyanComponent<ColumnProps>('cyan-column');
 export const Row = createCyanComponent<RowProps>('cyan-row');
 export const Container = createCyanComponent<ContainerProps>('cyan-container');
+
+export type TriangleProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
+  onClick?: (e: MouseEvent) => void;
+};
+
+export type ArrowProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
+  onClick?: (e: MouseEvent) => void;
+};
+
+export type CircleProps = {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
+  onClick?: (e: MouseEvent) => void;
+};
+
+export const Triangle = createCyanComponent<TriangleProps>('cyan-triangle');
+export const Arrow = createCyanComponent<ArrowProps>('cyan-arrow');
+export const Circle = createCyanComponent<CircleProps>('cyan-circle');

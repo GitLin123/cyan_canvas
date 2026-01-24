@@ -59,13 +59,18 @@ export abstract class RenderNode {
 
   markNeedsLayout() { this.markNeedsPaint(); }
 
+  // 子类实现：返回首选尺寸（基类负责应用 constraints）
   abstract performLayout(constraints: BoxConstraints): Size;
+
   abstract paintSelf(ctx: CanvasRenderingContext2D): void;
 
   layout(constraints: BoxConstraints) {
-    const size = this.performLayout(constraints);
-    this._width = size.width;
-    this._height = size.height;
+    const preferred = this.performLayout(constraints);
+    // clamp 到 constraints，确保子类无需重复实现 clamp / Stretch 行为
+    const finalWidth = Math.max(constraints.minWidth ?? 0, Math.min(constraints.maxWidth ?? preferred.width, preferred.width));
+    const finalHeight = Math.max(constraints.minHeight ?? 0, Math.min(constraints.maxHeight ?? preferred.height, preferred.height));
+    this._width = finalWidth;
+    this._height = finalHeight;
   }
 
   paint(ctx: CanvasRenderingContext2D) {

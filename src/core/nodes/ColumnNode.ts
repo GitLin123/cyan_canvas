@@ -9,8 +9,9 @@ export class ColumnNode extends RenderNode {
   }
 
   performLayout(constraints: BoxConstraints): Size {
-    const containerHeight = this.height || constraints.maxHeight;
-    const containerWidth = this.width || constraints.maxWidth;
+    // 使用受约束限制的有效容器尺寸（优先使用 this.width/height，但不超过 constraints）
+    const containerHeight = Math.min(this.height ?? constraints.maxHeight, constraints.maxHeight);
+    const containerWidth = Math.min(this.width ?? constraints.maxWidth, constraints.maxWidth);
 
     // 1) 统计 flex 并先给非 flex 子项做 layout，收集尺寸
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);

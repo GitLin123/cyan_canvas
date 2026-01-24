@@ -3,7 +3,10 @@ import { RenderNode } from './RenderNode';
 
 export interface EngineOptions {
   // 画布
-  canvas: HTMLCanvasElement;
+  canvas?: HTMLCanvasElement;
+  containerId?: string;
+  width?: number;
+  height?: number;
   // 设备像素比，默认使用窗口设备像素比
   pixelRatio?: number;
 }
@@ -29,7 +32,7 @@ export class CyanEngine {
 
 
   constructor(options: EngineOptions) {
-    this.canvas = options.canvas;
+    this.canvas = this._resolveCanvas(options);
     this.ctx = this.canvas.getContext('2d')!;
     // 创建离屏渲染画布
     this._offscreenCanvas = document.createElement('canvas');
@@ -40,6 +43,25 @@ export class CyanEngine {
     this.setupCanvas(options.pixelRatio || window.devicePixelRatio);
     this.initPipeline();
     this.initEvent();
+  }
+
+  private _resolveCanvas(options: EngineOptions): HTMLCanvasElement {
+    if (options.canvas) {
+      return options.canvas;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = options.width || 800;
+    canvas.height = options.height || 600;
+
+    // 挂载逻辑
+    const container = options.containerId
+      ? document.getElementById(options.containerId)
+      : document.body;
+
+    if (container) {
+      container.appendChild(canvas);
+    }
+    return canvas;
   }
 
   /**
@@ -126,23 +148,23 @@ private runPipeline(delta: number) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     dirtyRects.forEach(r => {
       minX = Math.min(minX, r.x); minY = Math.min(minY, r.y);
-      maxX = Math.max(maxX, r.x + r.w); maxY = Math.max(maxY, r.y + r.h);
+      maxX = Math.max(maxX, r.x + r.width); maxY = Math.max(maxY, r.y + r.height);
     });
-    finalRects = [{ x: minX, y: minY, w: maxX - minX, h: maxY - minY }];
+    finalRects = [{ x: minX, y: minY, width: maxX - minX, height: maxY - minY }];
   }
-  if(finalRects.length === 0) dirtyRects.push({ x: 0, y: 0, w: rect.width, h: rect.height });
+  if(finalRects.length === 0) dirtyRects.push({ x: 0, y: 0, width: rect.width, height: rect.height });
 
   offCtx.save();
   offCtx.setTransform(pr, 0, 0, pr, 0, 0);
 
   offCtx.beginPath();
   dirtyRects.forEach(rect => {
-    offCtx.rect(rect.x, rect.y, rect.w, rect.h);
+    offCtx.rect(rect.x, rect.y, rect.width, rect.height);
   });
   offCtx.clip();
 
   dirtyRects.forEach(rect => {
-    offCtx.clearRect(rect.x, rect.y, rect.w, rect.h);
+    offCtx.clearRect(rect.x, rect.y, rect.width, rect.height);
   });
 
   
@@ -158,12 +180,12 @@ private runPipeline(delta: number) {
 
   this.ctx.save();
   finalRects.forEach(r => {
-    if (r.w > 0 && r.h > 0) {
-      this.ctx.clearRect(r.x, r.y, r.w, r.h);
+    if (r.width > 0 && r.height > 0) {
+      this.ctx.clearRect(r.x, r.y, r.width, r.height);
       this.ctx.drawImage(
         this._offscreenCanvas,
-        r.x * pr, r.y * pr, r.w * pr, r.h * pr, // 离屏源（物理像素）
-        r.x, r.y, r.w, r.h                       // 主屏目标（逻辑像素）
+        r.x * pr, r.y * pr, r.width * pr, r.height * pr, // 离屏源（物理像素）
+        r.x, r.y, r.width, r.height                       // 主屏目标（逻辑像素）
       );
     }
     
