@@ -8,8 +8,8 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   protected _x: number = 0;
   protected _y: number = 0;
-  protected _width: number = 0;
-  protected _height: number = 0;
+  protected _width: number = 400;
+  protected _height: number = 300;
 
   public _isDirty: boolean = true;
   public _hasDirtyChild: boolean = true;

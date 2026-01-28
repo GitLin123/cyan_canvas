@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
-import { Rect, Container, Column } from './core/adaptor/reconciler/components';
-import { Text } from "./core/adaptor/reconciler/components";
+import { Rect, Column, Container, Text } from './core/adaptor/reconciler/components';
+
 const App = () => {
+  const [size, setSize] = useState(20);
+
   return (
-    <Text text="Hello Cyan Canvas"></Text>
+    <Container
+      padding={20}
+      color='pink'
+    >
+      <Column>
+        <Rect width={100} height={100} color="blue" />
+        <Text text="Hello Cyan!" color="black" 
+        fontSize={size} onMouseEnter={() => setSize(40)}
+        onMouseLeave={()=> setSize(20)}/>
+      </Column>
+    </Container>
   );
 };
-
 export default App;

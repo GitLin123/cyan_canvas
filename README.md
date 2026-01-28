@@ -28,19 +28,20 @@ import React, { useState } from 'react';
 import { Rect, Column, Container, Text } from './core/adaptor/reconciler/components';
 
 const App = () => {
-  const [hover, setHover] = useState(false);
+  const [size, setSize] = useState(20);
 
   return (
-    <Container 
-      padding={20} 
-      color={hover ? '#1e90ff' : '#70a1ff'}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+    <Container
+      padding={20}
+      color='pink'
     >
       <Column>
-        <Rect width={100} height={100} color="red" />
-        <Text text="Hello Cyan!" color="white" fontSize={20} />
+        <Rect width={100} height={100} color="blue" />
+        <Text text="Hello Cyan!" color="black" 
+        fontSize={size} onMouseEnter={() => setSize(40)}
+        onMouseLeave={()=> setSize(20)}/>
       </Column>
     </Container>
   );
 };
+export default App;
