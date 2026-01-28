@@ -1,5 +1,8 @@
-import { RenderNode, BoxConstraints, Size } from '../RenderNode';
+import { RenderNode } from '../RenderNode';
+import { BoxConstraints } from '../types/container';
+import { Size } from '../types/node';
 import { MainAxisAlignment, CrossAxisAlignment } from '../types/container';
+
 export class ColumnNode extends RenderNode {
   public mainAxisAlignment: MainAxisAlignment = MainAxisAlignment.Start;
   public crossAxisAlignment: CrossAxisAlignment = CrossAxisAlignment.Start;

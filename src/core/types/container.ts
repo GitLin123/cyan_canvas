@@ -16,3 +16,10 @@ export enum CrossAxisAlignment {
   Stretch  // 拉伸（填满交叉轴）
 }
 
+export interface BoxConstraints { 
+  minWidth: number; 
+  maxWidth: number; 
+  minHeight: number; 
+  maxHeight: number; 
+}
+

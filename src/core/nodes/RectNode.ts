@@ -1,4 +1,6 @@
-import { RenderNode, BoxConstraints, Size } from '../RenderNode';
+import { RenderNode } from '../RenderNode';
+import { BoxConstraints } from '../types/container';
+import { Size } from '../types/node';
 
 export class RectNode extends RenderNode {
   private _color: string = 'white';

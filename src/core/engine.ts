@@ -1,5 +1,6 @@
 import { Ticker } from './ticker';
 import { RenderNode } from './RenderNode';
+import { EventManager } from './events/index'; 
 
 export interface EngineOptions {
   // 画布
@@ -29,7 +30,7 @@ export class CyanEngine {
   // 离屏渲染上下文
   private _offscreenCtx: CanvasRenderingContext2D;
   private _frameCount: number = 0;
-
+  private eventManager: EventManager;
 
   constructor(options: EngineOptions) {
     this.canvas = this._resolveCanvas(options);
@@ -38,11 +39,15 @@ export class CyanEngine {
     this._offscreenCanvas = document.createElement('canvas');
     this._offscreenCtx = this._offscreenCanvas.getContext('2d')!;
 
+
     this.ticker = new Ticker();
 
+    this.eventManager = new EventManager(
+      this.canvas,
+      () => this.root // 使用闭包确保总是能获取到最新的 root
+    );
     this.setupCanvas(options.pixelRatio || window.devicePixelRatio);
     this.initPipeline();
-    this.initEvent();
   }
 
   private _resolveCanvas(options: EngineOptions): HTMLCanvasElement {
@@ -93,56 +98,6 @@ export class CyanEngine {
       }
     };
     safeReset(this.root);
-  }
-
-
-  /**
-   * 初始化事件
-  */
-  private initEvent() {
-    this.canvas.addEventListener('click', (e: MouseEvent) => {
-      if (!this.root) return;
-
-      // --- 修正开始 ---
-      // 1. 获取 Canvas 在屏幕上的矩形区域
-      const rect = this.canvas.getBoundingClientRect();
-
-      // 2. 获取 Canvas 的边框宽度 (浏览器计算后的样式)
-      // getBoundingClientRect 包含边框，但 Canvas 绘图区是从边框内部开始的
-      const style = window.getComputedStyle(this.canvas);
-      const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-      const borderTop = parseFloat(style.borderTopWidth) || 0;
-      const paddingLeft = parseFloat(style.paddingLeft) || 0;
-      const paddingTop = parseFloat(style.paddingTop) || 0;
-
-      // 3. 计算缩放比例 (处理 CSS width 与 内部 width 不一致的情况)
-      // 逻辑宽度 = canvas.width / pixelRatio。如果 CSS 设置了 width: 100%，可能导致拉伸。
-      // 我们需要算出：1个屏幕像素 等于 多少个逻辑像素
-      const logicalWidth = this.canvas.width /  window.devicePixelRatio;
-      // rect.width 包含了 border + padding + content
-      // 我们需要 content 的显示宽度
-      const contentWidth = rect.width - borderLeft - (parseFloat(style.borderRightWidth) || 0) - paddingLeft - (parseFloat(style.paddingRight) || 0);
-
-      const scaleX = contentWidth > 0 ? logicalWidth / contentWidth : 1;
-      const scaleY = scaleX; // 通常保持纵横比一致，或者单独计算 height
-
-      // 4. 计算相对于 Canvas 绘图区左上角的逻辑坐标
-      // (鼠标屏幕坐标 - Canvas屏幕坐标 - 边框 - 内边距) * 缩放比例
-      const x = (e.clientX - rect.left - borderLeft - paddingLeft) * scaleX;
-      const y = (e.clientY - rect.top - borderTop - paddingTop) * scaleY;
-      // --- 修正结束 ---
-
-      // 5. 减去根节点自身的偏移 (Container 的 x/y)
-      const localX = x - this.root.x;
-      const localY = y - this.root.y;
-
-      const target = this.root.hitTest(localX, localY);
-
-      if (target && target.onClick) {
-        target.onClick(e);
-        // 如果是在 React 环境下，状态更新会自动触发重绘，无需手动处理
-      }
-    });
   }
 
   /**
@@ -239,9 +194,6 @@ export class CyanEngine {
 
 
   public start() {
-    // 1. 移除 if (!this.root) 的拦截，允许引擎先启动等待内容
-    // 2. 移除 this.resetDirtyStatus()，保留初始的 _isDirty=true 状态
-
     console.log('[Engine] Ticker starting...');
     this.ticker.start();
 

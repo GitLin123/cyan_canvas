@@ -1,5 +1,6 @@
 import React from 'react';
 import { MainAxisAlignment, CrossAxisAlignment } from '../../types/container';
+import { CyanEventHandlers } from '../../types/events';
 
 export type RectProps = {
   x?: number;
@@ -9,8 +10,7 @@ export type RectProps = {
   color?: string;
   flex?: number;
   borderRadius?: number;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 export type ColumnProps = {
   x?: number;
@@ -19,8 +19,7 @@ export type ColumnProps = {
   height?: number;
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 export type RowProps = {  
   x?: number;
@@ -29,8 +28,7 @@ export type RowProps = {
   height?: number;
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 export type ContainerProps = {  
   x?: number;
@@ -43,8 +41,7 @@ export type ContainerProps = {
   border?: number;
   borderRadius?: number;
   borderColor?: string;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 function createCyanComponent<P = any>(tagName: string) {
   const Comp: React.FC<React.PropsWithChildren<P>> = (props: React.PropsWithChildren<P>) =>
@@ -63,8 +60,7 @@ export type TriangleProps = {
   width?: number;
   height?: number;
   color?: string;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 export type ArrowProps = {
   x?: number;
@@ -72,8 +68,7 @@ export type ArrowProps = {
   width?: number;
   height?: number;
   color?: string;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
 export type CircleProps = {
   x?: number;
@@ -81,9 +76,15 @@ export type CircleProps = {
   width?: number;
   height?: number;
   color?: string;
-  onClick?: (e: MouseEvent) => void;
-};
+} & CyanEventHandlers;
 
+export type TextProps = {
+  text?: string;
+  fontSize?: number;
+  color?: string;
+} & CyanEventHandlers;
+
+export const Text = createCyanComponent<TextProps>('cyan-text');
 export const Triangle = createCyanComponent<TriangleProps>('cyan-triangle');
 export const Arrow = createCyanComponent<ArrowProps>('cyan-arrow');
 export const Circle = createCyanComponent<CircleProps>('cyan-circle');

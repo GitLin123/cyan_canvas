@@ -1,4 +1,6 @@
-import { RenderNode, BoxConstraints, Size } from '../RenderNode';
+import { RenderNode} from '../RenderNode';
+import { BoxConstraints } from '../types/container';
+import { Size } from '../types/node';
 import { MainAxisAlignment, CrossAxisAlignment} from '../types/container';
 export class RowNode extends RenderNode {
   constructor(

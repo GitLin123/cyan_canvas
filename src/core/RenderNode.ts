@@ -1,9 +1,8 @@
-import { Rect } from "./types/node";
+import { Rect, Size} from "./types/node";
+import { BoxConstraints } from "./types/container";
+import { CyanEventHandlers } from "./types/events";
 
-export interface BoxConstraints { minWidth: number; maxWidth: number; minHeight: number; maxHeight: number; }
-export interface Size { width: number; height: number; }
-
-export abstract class RenderNode {
+export abstract class RenderNode implements CyanEventHandlers {
   public parent: RenderNode | null = null;
   public children: RenderNode[] = [];
 
@@ -17,8 +16,20 @@ export abstract class RenderNode {
   public alpha: number = 1;
   public visible: boolean = true;
   public flex: number = 0;
-  public onClick?: (e: MouseEvent) => void;
   private _localDirtyRects: Array<Rect> = [];
+
+  // 事件系统
+  public onClick?: (e: MouseEvent) => void;
+  public onHover?: (e: MouseEvent) => void;
+  public onMouseDown?: (e: MouseEvent) => void;
+  public onMouseUp?: (e: MouseEvent) => void;
+  public onMouseMove?: (e: MouseEvent) => void;
+  public onMouseEnter?: (e: MouseEvent) => void;
+  public onMouseLeave?: (e: MouseEvent) => void;
+  public onWheel?: (e: WheelEvent) => void;
+  public onContextMenu?: (e: MouseEvent) => void;
+
+  public _isMouseOver: boolean = false;
 
   public get x() { return this._x; }
   public set x(v: number) { if (this._x === v) return; this._x = v; this.markNeedsLayout(); }

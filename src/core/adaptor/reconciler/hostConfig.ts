@@ -1,4 +1,5 @@
 import { COMPONENT_MAP } from './nodes';
+import { TextNode } from '../../nodes/TextNode';
 
 export const hostConfig: any = {
   clearContainer(container: any) {
@@ -31,7 +32,13 @@ export const hostConfig: any = {
   prepareForCommit() { return null; },
   resetAfterCommit() { },
   shouldSetTextContent() { return false; },
-  createTextInstance() { return null; },
+  createTextInstance(text: string) {
+    return new TextNode(text);
+  }, 
+  
+  commitTextUpdate(textInstance: any, oldText: string, newText: string) {
+    textInstance.text = newText;
+  },
 
   // 更新逻辑
   prepareUpdate() { return true; },
