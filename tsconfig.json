@@ -9,5 +9,6 @@
     "skipLibCheck": true,
     "lib": ["ESNext", "DOM"]
   },
-  "include": ["./*"]
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

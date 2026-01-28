@@ -1,5 +1,5 @@
 // main.ts
-import { CyanEngine } from './core/engine';
+import { CyanEngine } from './core/Engine';
 import { runApp } from './core/adaptor/flutter/runApp';
 import { Rect } from './core/adaptor/flutter/basic';
 

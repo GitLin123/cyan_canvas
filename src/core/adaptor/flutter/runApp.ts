@@ -1,4 +1,4 @@
-import { CyanEngine } from '../../engine';
+import { CyanEngine } from '../../Engine';
 import { Widget, RenderObjectWidget, StatelessWidget } from './widget';
 
 export function runApp(app: Widget, engine: CyanEngine) {

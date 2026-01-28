@@ -1,7 +1,6 @@
 import { COMPONENT_MAP } from './nodes';
 
 export const hostConfig: any = {
-  // 核心：清理容器
   clearContainer(container: any) {
     if (container && container.children) {
       container.children = [];
@@ -37,9 +36,19 @@ export const hostConfig: any = {
   // 更新逻辑
   prepareUpdate() { return true; },
   commitUpdate(instance: any, updatePayload: any, type: string, oldProps: any, newProps: any) {
+    console.log('React 提交更新:', instance.constructor.name);
+    console.log('实例 props:', { x: instance.x, y: instance.y, color: instance.color });
+
     const { children, ...restProps } = newProps;
     Object.assign(instance, restProps);
-    if (instance.markNeedsPaint) instance.markNeedsPaint();
+    console.log('更新后 props:', { x: instance.x, y: instance.y, color: instance.color });
+
+    const engine = (window as any).__CYAN_ENGINE__;
+    if (engine) {
+      engine.markNeedsPaint(instance);
+    } else {
+      console.log('找不到 engine，无法触发重绘');
+    }
   },
 
   // 树变更
@@ -51,7 +60,11 @@ export const hostConfig: any = {
     if (container.root === undefined || container.root === null) {
       container.root = child;
       child.parent = null;
-      if (container.engine) container.engine.root = child;
+      child._isDirty = true;
+      if (container.engine) {
+        container.engine.root = child;
+        container.engine.markNeedsPaint(child);
+      }
       return;
     }
     if (container.add) container.add(child);
