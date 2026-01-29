@@ -1,17 +1,23 @@
 {
-  "name": "cyan_canvas",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@jianlinzhou/cyan_engine",
+  "private": false,
+  "version": "0.1.1",
   "type": "module",
+  "description": "A high-performance React reconciler based Canvas engine.",
+  "main": "./dist/cyan-engine.umd.cjs",
+  "module": "./dist/cyan-engine.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-reconciler": ">=0.29.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-reconciler": "^0.29.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",

@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
-import { Rect, Column, Container, Text } from './core/adaptor/reconciler/components';
+import { Image, Column, Container, Text } from './core/adaptor/reconciler/components';
 
 const App = () => {
-  const [size, setSize] = useState(20);
+  const [text, setText] = useState('11111111111');
 
   return (
-    <Container
-      padding={20}
-      color='pink'
-    >
-      <Column>
-        <Rect width={100} height={100} color="blue" />
-        <Text text="Hello Cyan!" color="black" 
-        fontSize={size} onMouseEnter={() => setSize(40)}
-        onMouseLeave={()=> setSize(20)}/>
-      </Column>
-    </Container>
+    <Column>
+      <Text text="文章封面图" fontSize={18} />
+      <Image
+        src="https://youke.xn--y7xa690gmna.cn/s1/2026/01/29/697aca5c27408.webp"
+        height={200}
+        width={200}
+        onClick={() => setText('图片被点击')}
+      />
+      <Text text={text} color="#666" />
+    </Column>
   );
 };
 export default App;

@@ -6,6 +6,8 @@ import { TriangleNode } from '../../nodes/TriangleNode';
 import { ArrowNode } from '../../nodes/ArrowNode';
 import { CircleNode } from '../../nodes/CircleNode';
 import { TextNode } from "../../nodes/TextNode";
+import { ImageNode } from '../../nodes/ImageNodes';
+
 export const COMPONENT_MAP: Record<string, any> = {
   'cyan-row': RowNode,
   'cyan-rect': RectNode,
@@ -15,4 +17,5 @@ export const COMPONENT_MAP: Record<string, any> = {
   'cyan-arrow': ArrowNode,
   'cyan-circle': CircleNode,
   'cyan-text': TextNode,
+  'cyan-image': ImageNode,
 };

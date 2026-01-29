@@ -4,6 +4,9 @@ import {Widget, RenderObjectWidget } from "./widget";
 import { TriangleNode } from '../../nodes/TriangleNode';
 import { ArrowNode } from '../../nodes/ArrowNode';
 import { CircleNode } from '../../nodes/CircleNode';
+import { TextNode } from '../../nodes/TextNode';
+import { ImageNode } from '../../nodes/ImageNodes';
+
 export class Rect extends RenderObjectWidget {
   constructor(private props: { width?: number; height?: number; color?: string }) {
     super();
@@ -49,6 +52,26 @@ export class Circle extends RenderObjectWidget {
     super();
   }
   createRenderNode() { return new CircleNode(); }
+  updateRenderNode(node: any) {
+    Object.assign(node, this.props);
+  }
+}
+
+export class Text extends RenderObjectWidget {
+  constructor(private props: { text?: string; fontSize?: number; color?: string }) {
+    super();
+  }
+  createRenderNode() { return new TextNode(); }
+  updateRenderNode(node: any) {
+    Object.assign(node, this.props);
+  }
+}
+
+export class Image extends RenderObjectWidget {
+  constructor(private props: { src: string; width?: number; height?: number }) {
+    super();
+  }
+  createRenderNode() { return new ImageNode(); }
   updateRenderNode(node: any) {
     Object.assign(node, this.props);
   }
