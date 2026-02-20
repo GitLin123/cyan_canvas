@@ -1,20 +1,14 @@
-import React, { useState } from 'react';
-import { Image, Column, Container, Text } from './core/adaptor/reconciler/components';
+import React, { useState, useEffect } from 'react'
+import { Rect, Column, Container } from './core/adaptor/reconciler/components'
 
 const App = () => {
-  const [text, setText] = useState('11111111111');
+
 
   return (
-    <Column>
-      <Text text="文章封面图" fontSize={18} />
-      <Image
-        src="https://youke.xn--y7xa690gmna.cn/s1/2026/01/29/697aca5c27408.webp"
-        height={200}
-        width={200}
-        onClick={() => setText('图片被点击')}
-      />
-      <Text text={text} color="#666" />
-    </Column>
-  );
-};
-export default App;
+    <Container width={1000} height={800} color="#cc6c6c">
+      <Rect x={100} y={100} width={50} height={50} color="#77d14a" />
+      <Rect x={200} y={200} width={50} height={50} color="#603dec" />
+    </Container>
+  )
+}
+export default App

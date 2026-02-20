@@ -18,3 +18,10 @@ export interface CyanEventHandlers {
   onWheel?: (e: WheelEvent) => void;
   onContextMenu?: (e: MouseEvent) => void;
 }
+
+export type CyanKeyboardEvent = {
+  key: string;
+  code: string;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+};

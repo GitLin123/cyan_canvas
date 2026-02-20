@@ -3,6 +3,7 @@ import { CyanInputEventType } from '../types/events';
 
 export class EventManager {
   private lastHoveredNode: RenderNode | null = null;
+  private focusedNode: RenderNode | null = null;
 
   private readonly handlerMap: Record<string, keyof RenderNode> = {
     'click': 'onClick',
@@ -95,4 +96,18 @@ export class EventManager {
       this.lastHoveredNode = currentTarget;
     }
   }
+
+  private initKeyboardEvents() {
+    window.addEventListener('keydown', (e) => {
+      if (this.focusedNode && this.focusedNode.onKeyDown) {
+        this.focusedNode.onKeyDown({
+          key: e.key,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          shiftKey: e.shiftKey
+        });
+      }
+    });
+  }
+  
 }

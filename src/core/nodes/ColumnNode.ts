@@ -6,27 +6,33 @@ import { MainAxisAlignment, CrossAxisAlignment } from '../types/container';
 export class ColumnNode extends RenderNode {
   public mainAxisAlignment: MainAxisAlignment = MainAxisAlignment.Start;
   public crossAxisAlignment: CrossAxisAlignment = CrossAxisAlignment.Start;
-  
+
   constructor() {
     super();
   }
 
   performLayout(constraints: BoxConstraints): Size {
     // 使用受约束限制的有效容器尺寸（优先使用 this.width/height，但不超过 constraints）
-    const containerHeight = Math.min(this.height ?? constraints.maxHeight, constraints.maxHeight);
-    const containerWidth = Math.min(this.width ?? constraints.maxWidth, constraints.maxWidth);
+    const containerHeight = Math.min(
+      this.height ?? constraints.maxHeight,
+      constraints.maxHeight
+    );
+    const containerWidth = Math.min(
+      this.width ?? constraints.maxWidth,
+      constraints.maxWidth
+    );
 
     // 1) 统计 flex 并先给非 flex 子项做 layout，收集尺寸
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
     let usedHeight = 0;
     let maxWidth = 0;
-    this.children.forEach(child => {
+    this.children.forEach((child) => {
       if (!child.flex) {
         child.layout({
           minWidth: constraints.minWidth,
           maxWidth: containerWidth,
           minHeight: constraints.minHeight,
-          maxHeight: containerHeight
+          maxHeight: containerHeight,
         });
         usedHeight += child.height;
         maxWidth = Math.max(maxWidth, child.width);
@@ -36,14 +42,14 @@ export class ColumnNode extends RenderNode {
     // 2) 分配给 flex 子项高度并 layout
     const remaining = Math.max(0, containerHeight - usedHeight);
     const flexUnit = totalFlexNodes > 0 ? remaining / totalFlexNodes : 0;
-    this.children.forEach(child => {
+    this.children.forEach((child) => {
       if (child.flex) {
         const alloc = Math.max(0, Math.floor((child.flex || 0) * flexUnit));
         child.layout({
           minWidth: constraints.minWidth,
           maxWidth: containerWidth,
           minHeight: alloc,
-          maxHeight: alloc
+          maxHeight: alloc,
         });
         usedHeight += child.height;
         maxWidth = Math.max(maxWidth, child.width);
@@ -62,7 +68,10 @@ export class ColumnNode extends RenderNode {
         offsetY = Math.max(0, Math.floor((containerHeight - usedHeight) / 2));
         break;
       case MainAxisAlignment.SpaceBetween:
-        gap = childCount > 1 ? (containerHeight - usedHeight) / (childCount - 1) : 0;
+        gap =
+          childCount > 1
+            ? (containerHeight - usedHeight) / (childCount - 1)
+            : 0;
         offsetY = 0;
         break;
       case MainAxisAlignment.Start:
@@ -71,7 +80,7 @@ export class ColumnNode extends RenderNode {
     }
 
     // 4) 把子节点放置到计算好的位置，同时处理 crossAxisAlignment（水平对齐）
-    this.children.forEach(child => {
+    this.children.forEach((child) => {
       // 水平对齐与 stretch 处理
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.Center:
@@ -85,7 +94,7 @@ export class ColumnNode extends RenderNode {
             minWidth: containerWidth,
             maxWidth: containerWidth,
             minHeight: child.height,
-            maxHeight: child.height
+            maxHeight: child.height,
           });
           child.x = 0;
           break;
@@ -100,9 +109,7 @@ export class ColumnNode extends RenderNode {
 
     // 让 Column 占满容器宽度，避免只根据子项宽度收缩
     return { width: containerWidth, height: containerHeight };
-   }
- 
-   paintSelf(ctx: CanvasRenderingContext2D): void {
-    // Column 本身通常不画东西
   }
+
+  paintSelf(ctx: CanvasRenderingContext2D): void {}
 }

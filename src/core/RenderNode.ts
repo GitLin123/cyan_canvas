@@ -1,6 +1,6 @@
 import { Rect, Size} from "./types/node";
 import { BoxConstraints } from "./types/container";
-import { CyanEventHandlers } from "./types/events";
+import { CyanEventHandlers, CyanKeyboardEvent } from "./types/events";
 
 export abstract class RenderNode implements CyanEventHandlers {
   public parent: RenderNode | null = null;
@@ -16,7 +16,7 @@ export abstract class RenderNode implements CyanEventHandlers {
   public alpha: number = 1;
   public visible: boolean = true;
   public flex: number = 0;
-  private _localDirtyRects: Array<Rect> = [];
+  protected _localDirtyRects: Array<Rect> = [];
 
   // 事件系统
   public onClick?: (e: MouseEvent) => void;
@@ -28,20 +28,46 @@ export abstract class RenderNode implements CyanEventHandlers {
   public onMouseLeave?: (e: MouseEvent) => void;
   public onWheel?: (e: WheelEvent) => void;
   public onContextMenu?: (e: MouseEvent) => void;
+  public onKeyDown?: (e: CyanKeyboardEvent) => void;
+  public onKeyUp?: (e: CyanKeyboardEvent) => void;
+  public focusable: boolean = false; // 只有设为 true 的节点才能获焦
 
   public _isMouseOver: boolean = false;
 
   public get x() { return this._x; }
-  public set x(v: number) { if (this._x === v) return; this._x = v; this.markNeedsLayout(); }
+  public set x(v: number) { 
+    if (this._x === v) return;
+    this._addDirtyRect(this._x, this._y, this._width, this._height);
+    this._x = v;
+    this._addDirtyRect(this._x, this._y, this._width, this._height);
+    this.markNeedsLayout(); 
+  }
 
   public get y() { return this._y; }
-  public set y(v: number) { if (this._y === v) return; this._y = v; this.markNeedsLayout(); }
+  public set y(v: number) {
+    if (this._y === v) return;
+    this._addDirtyRect(this._x, this._y, this._width, this._height); // 旧位置
+    this._y = v;
+    this._addDirtyRect(this._x, this._y, this._width, this._height); // 新位置
+    this.markNeedsLayout();
+  }
 
   public get width() { return this._width; }
-  public set width(v: number) { if (this._width === v) return; this._width = v; this.markNeedsLayout(); }
+  public set width(v: number) {
+     if (this._width === v) return; 
+     this._addDirtyRect(this._x, this._y, this._width, this._height);
+     this._width = v; 
+      this._addDirtyRect(this._x, this._y, this._width, this._height);
+     this.markNeedsLayout(); 
+  }
 
   public get height() { return this._height; }
-  public set height(v: number) { if (this._height === v) return; this._height = v; this.markNeedsLayout(); }
+  public set height(v: number) { 
+    if (this._height === v) return;
+    this._addDirtyRect(this._x, this._y, this._width, this._height);
+    this._height = v;
+    this._addDirtyRect(this._x, this._y, this._width, this._height);
+    this.markNeedsLayout(); }
 
   add(child: RenderNode) {
     child.parent = this;
@@ -129,5 +155,21 @@ export abstract class RenderNode implements CyanEventHandlers {
       },
       children: this.children.map(child => child.toJSON())
     };
+  }
+
+  private _addDirtyRect(x: number, y: number, w: number, h: number) {
+    let globalX = x, globalY = y;
+    let curr = this.parent;
+    while (curr) {
+      globalX += curr.x;
+      globalY += curr.y;
+      curr = curr.parent;
+    }
+    const root = this.getRoot();
+    (root as any)._localDirtyRects.push({ x: globalX, y: globalY, width: w, height: h });  
+  }
+
+  private _calculateGlobalPosition(clientX: number, clientY: number) {
+    
   }
 }
