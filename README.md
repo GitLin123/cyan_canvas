@@ -56,14 +56,14 @@ Cyan Engine 的架构设计参考了现代前端框架的最佳实践，采用�
 
 ### 核心模块说明
 
-| 模块 | 职责 | 关键文件 |
-|------|------|----------|
-| **Engine** | 渲染管线调度、帧循环管理、脏检查、离屏渲染 | `Engine.ts` |
-| **Ticker** | 基于 requestAnimationFrame 的帧循环，FPS 统计 | `ticker.ts` |
-| **RenderNode** | 渲染节点基类，布局计算，绘制逻辑 | `RenderNode.ts` |
-| **Events** | 事件委托、坐标转换、碰撞检测 | `events/index.ts` |
-| **Animation** | 动画控制器、补间动画、缓动曲线 | `animation/` |
-| **Reconciler** | 连接 React Fiber 与 Cyan 渲染树 | `adaptor/reconciler/` |
+| 模块           | 职责                                          | 关键文件              |
+| -------------- | --------------------------------------------- | --------------------- |
+| **Engine**     | 渲染管线调度、帧循环管理、脏检查、离屏渲染    | `Engine.ts`           |
+| **Ticker**     | 基于 requestAnimationFrame 的帧循环，FPS 统计 | `ticker.ts`           |
+| **RenderNode** | 渲染节点基类，布局计算，绘制逻辑              | `RenderNode.ts`       |
+| **Events**     | 事件委托、坐标转换、碰撞检测                  | `events/index.ts`     |
+| **Animation**  | 动画控制器、补间动画、缓动曲线                | `animation/`          |
+| **Reconciler** | 连接 React Fiber 与 Cyan 渲染树               | `adaptor/reconciler/` |
 
 ## 🚀 快速开始
 
@@ -88,57 +88,64 @@ yarn add @jianlinzhou/cyan_engine
 
 ```tsx
 import React, { useState } from 'react';
-import { runApp } from './core/adaptor/flutter/runApp';
-import { Container, Column, Row, Rect, Text, Circle, Padding } from './core/adaptor/reconciler/components';
+import { CyanEngine } from '@jianlinzhou/cyan_engine';
+import { CyanRenderer } from './core/adaptor/reconciler';
+import { Container, Column, Row, Rect, Text, Circle, Padding, Center } from './core/adaptor/reconciler/components';
+import { MainAxisAlignment, CrossAxisAlignment, FontWeight, TextAlign } from './core/types/container';
 
 const App = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
   const [counter, setCounter] = useState(0);
   const [hovered, setHovered] = useState(false);
 
+  React.useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <Container width={800} height={600} color="#f5f5f5">
-      <Column mainAxisAlignment="center" crossAxisAlignment="center">
+    <Container width={windowSize.width} height={windowSize.height} color="#f5f5f5">
+      <Column
+        width={windowSize.width}
+        height={windowSize.height}
+        mainAxisAlignment={MainAxisAlignment.Center}
+        crossAxisAlignment={CrossAxisAlignment.Center}
+      >
         <Padding padding={40}>
-          <Column alignment="center">
-            <Text 
-              text={`计数器: ${counter}`} 
-              fontSize={32} 
+          <Column crossAxisAlignment={CrossAxisAlignment.Center}>
+            <Text
+              text={`计数器: ${counter}`}
+              fontSize={32}
               color="#333"
-              fontWeight="bold"
+              fontWeight={FontWeight.W700}
+              textAlign={TextAlign.Center}
             />
             <Padding padding={20}>
-              <Rect 
-                width={200} 
-                height={100} 
-                color={hovered ? "#4CAF50" : "#2196F3"}
+              <Rect
+                width={200}
+                height={100}
+                color={hovered ? '#4CAF50' : '#2196F3'}
                 borderRadius={12}
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
-                onClick={() => setCounter(c => c + 1)}
-              >
-                <Text 
-                  text="点击增加" 
-                  fontSize={18} 
-                  color="#fff"
-                />
-              </Rect>
+                onClick={() => setCounter((c) => c + 1)}
+              />
+              <Center width={200} height={100}>
+                <Text text="点击增加" fontSize={18} color="#fff" textAlign={TextAlign.Center} />
+              </Center>
             </Padding>
-            <Row>
-              <Circle 
-                radius={30} 
-                color="#FF9800" 
-                margin={10}
-              />
-              <Circle 
-                radius={30} 
-                color="#9C27B0" 
-                margin={10}
-              />
-              <Circle 
-                radius={30} 
-                color="#00BCD4" 
-                margin={10}
-              />
+            <Row mainAxisAlignment={MainAxisAlignment.Center}>
+              <Circle radius={30} color="#FF9800" />
+              <Padding padding={10} />
+              <Circle radius={30} color="#9C27B0" />
+              <Padding padding={10} />
+              <Circle radius={30} color="#00BCD4" />
             </Row>
           </Column>
         </Padding>
@@ -148,7 +155,12 @@ const App = () => {
 };
 
 // 启动应用
-runApp(<App />);
+const engine = new CyanEngine({
+  containerId: 'root',
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
+CyanRenderer.render(<App />, engine);
 ```
 
 ### 事件处理
@@ -156,19 +168,21 @@ runApp(<App />);
 Cyan Engine 提供了完善的事件系统，支持鼠标和键盘交互：
 
 ```tsx
+import { Rect } from './core/adaptor/reconciler/components';
+
 <Rect
   width={200}
   height={100}
-  color="blue"
-  onClick={(e) => console.log('点击了矩形', e.clientX, e.clientY)}
-  onMouseEnter={(e) => console.log('鼠标进入')}
-  onMouseLeave={(e) => console.log('鼠标离开')}
-  onMouseMove={(e) => console.log('鼠标移动', e.clientX, e.clientY)}
-  onMouseDown={(e) => console.log('鼠标按下')}
-  onMouseUp={(e) => console.log('鼠标释放')}
-  onContextMenu={(e) => console.log('右键菜单')}
-  onWheel={(e) => console.log('滚轮滚动', e.deltaY)}
-/>
+  color="#2196F3"
+  onClick={() => console.log('点击了矩形')}
+  onMouseEnter={() => console.log('鼠标进入')}
+  onMouseLeave={() => console.log('鼠标离开')}
+  onMouseMove={() => console.log('鼠标移动')}
+  onMouseDown={() => console.log('鼠标按下')}
+  onMouseUp={() => console.log('鼠标释放')}
+  onContextMenu={() => console.log('右键菜单')}
+  onWheel={() => console.log('滚轮滚动')}
+/>;
 ```
 
 ### 动画效果
@@ -176,33 +190,29 @@ Cyan Engine 提供了完善的事件系统，支持鼠标和键盘交互：
 利用内置的动画系统创建流畅的交互体验：
 
 ```tsx
-import { useAnimation } from './core/animation/useAnimation';
+import React, { useState } from 'react';
+import { useNumberAnimation, Curves } from './core/animation';
+import { Rect } from './core/adaptor/reconciler/components';
 
 const AnimatedBox = () => {
-  const animation = useAnimation({
-    duration: 300,
-    curve: 'easeInOut',
-  });
-
   const [expanded, setExpanded] = useState(false);
 
-  const handleClick = () => {
+  const { controller, animatedValue } = useNumberAnimation(50, 250, {
+    duration: 300,
+    curve: Curves.easeInOut,
+    autoStart: false,
+  });
+
+  const handleClick = async () => {
     setExpanded(!expanded);
     if (!expanded) {
-      animation.forward();
-    }else {
-      animation.reverse();
+      await controller.forward();
+    } else {
+      await controller.reverse();
     }
   };
 
-  return (
-    <Rect
-      width={animation.value * 200 + 50}
-      height={100}
-      color="orange"
-      onClick={handleClick}
-    />
-  );
+  return <Rect width={animatedValue} height={100} color="orange" borderRadius={8} onClick={handleClick} />;
 };
 ```
 
@@ -223,62 +233,67 @@ interface BoxConstraints {
 
 ### 布局容器
 
-| 组件 | 说明 | 关键属性 |
-|------|------|----------|
-| **Column** | 垂直布局容器 | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
-| **Row** | 水平布局容器 | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
-| **Stack** | 堆叠布局，后进先出 | `alignment` |
-| **Wrap** | 自动换行布局 | `spacing`, `runSpacing`, `alignment` |
-| **Flex** |弹性布局基础组件 | `direction`, `flex`, `mainAxisAlignment` |
-| **Center** | 居中布局 | - |
-| **Padding** | 内边距 | `padding` |
-| **Align** | 对齐定位 | `alignment` |
-| **SizedBox** | 固定尺寸 | `width`, `height` |
-| **AspectRatio** | 宽高比限制 | `aspectRatio` |
+| 组件            | 说明               | 关键属性                                             |
+| --------------- | ------------------ | ---------------------------------------------------- |
+| **Column**      | 垂直布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
+| **Row**         | 水平布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
+| **Stack**       | 堆叠布局，后进先出 | `alignment`                                          |
+| **Wrap**        | 自动换行布局       | `spacing`, `runSpacing`, `alignment`                 |
+| **Flex**        | 弹性布局基础组件   | `direction`, `flex`, `mainAxisAlignment`             |
+| **Center**      | 居中布局           | -                                                    |
+| **Padding**     | 内边距             | `padding`                                            |
+| **Align**       | 对齐定位           | `alignment`                                          |
+| **SizedBox**    | 固定尺寸           | `width`, `height`                                    |
+| **AspectRatio** | 宽高比限制         | `aspectRatio`                                        |
 
 ### 对齐方式
 
 ```tsx
+import { Row, Column } from './core/adaptor/reconciler/components';
+import { MainAxisAlignment, CrossAxisAlignment } from './core/types/container';
+
 // 主轴对齐 (mainAxisAlignment)
-<Row mainAxisAlignment="start">    /* 开始对齐 */
-<Row mainAxisAlignment="center">   /* 居中 */
-<Row mainAxisAlignment="end">      /* 结束对齐 */
-<Row mainAxisAlignment="spaceBetween"> /* 两端对齐 */
-<Row mainAxisAlignment="spaceAround">  /* 等间距 */
-<Row mainAxisAlignment="spaceEvenly">  /* 完全等间距 */
+<Row mainAxisAlignment={MainAxisAlignment.Start}>    {/* 开始对齐 */}
+<Row mainAxisAlignment={MainAxisAlignment.Center}>   {/* 居中 */}
+<Row mainAxisAlignment={MainAxisAlignment.End}>      {/* 结束对齐 */}
+<Row mainAxisAlignment={MainAxisAlignment.SpaceBetween}> {/* 两端对齐 */}
+<Row mainAxisAlignment={MainAxisAlignment.SpaceAround}>  {/* 等间距 */}
+<Row mainAxisAlignment={MainAxisAlignment.SpaceEvenly}>  {/* 完全等间距 */}
 
 // 交叉轴对齐 (crossAxisAlignment)
-<Column crossAxisAlignment="start">   /* 开始对齐 */
-<Column crossAxisAlignment="center">  /* 居中 */
-<Column crossAxisAlignment="end">     /* 结束对齐 */
-<Column crossAxisAlignment="stretch"> /* 拉伸填满 */
+<Column crossAxisAlignment={CrossAxisAlignment.Start}>   {/* 开始对齐 */}
+<Column crossAxisAlignment={CrossAxisAlignment.Center}>  {/* 居中 */}
+<Column crossAxisAlignment={CrossAxisAlignment.End}>     {/* 结束对齐 */}
+<Column crossAxisAlignment={CrossAxisAlignment.Stretch}> {/* 拉伸填满 */}
 ```
 
 ## 📦 组件库
 
 ### 基础图形
 
-| 组件 | 说明 |
-|------|------|
-| **Rect** | 矩形，支持圆角和颜色 |
-| **Circle** | 圆形 |
-| **Triangle** | 三角形 |
-| **Arrow** | 箭头 |
-| **Text** | 文本渲染 |
-| **Image** | 图片加载与显示 |
+| 组件         | 说明                 |
+| ------------ | -------------------- |
+| **Rect**     | 矩形，支持圆角和颜色 |
+| **Circle**   | 圆形                 |
+| **Triangle** | 三角形               |
+| **Arrow**    | 箭头                 |
+| **Text**     | 文本渲染             |
+| **Image**    | 图片加载与显示       |
 
 ### 容器组件
 
-| 组件 | 说明 |
-|------|------|
-| **Container** | 通用容器，支持背景、边框、圆角等 |
-| **SingleChildScrollView** | 单子元素滚动容器 |
+| 组件                      | 说明                             |
+| ------------------------- | -------------------------------- |
+| **Container**             | 通用容器，支持背景、边框、圆角等 |
+| **SingleChildScrollView** | 单子元素滚动容器                 |
 
 ## 🎨 样式属性
 
 ### 通用样式
 
 ```tsx
+import { Rect } from './core/adaptor/reconciler/components';
+
 <Rect
   width={200}
   height={100}
@@ -287,22 +302,26 @@ interface BoxConstraints {
   color="#FF5722"
   alpha={0.8}
   borderRadius={8}
-  border={{ width: 2, color: '#333' }}
+  border={2}
+  borderColor="#333"
   visible={true}
-/>
+/>;
 ```
 
 ### 文本样式
 
 ```tsx
+import { Text } from './core/adaptor/reconciler/components';
+import { FontWeight, TextAlign } from './core/types/container';
+
 <Text
   text="Hello Cyan"
   fontSize={24}
   fontFamily="Arial, sans-serif"
-  fontWeight="bold"
+  fontWeight={FontWeight.W700}
   color="#333"
-  textAlign="center"
-/>
+  textAlign={TextAlign.Center}
+/>;
 ```
 
 ## ⚡ 性能优化
@@ -351,8 +370,8 @@ const engine = new CyanEngine({
 通过继承 RenderNode 创建自定义渲染组件：
 
 ```typescript
-import { RenderNode } from '../core/RenderNode';
-import { BoxConstraints, Size } from '../core/types/container';
+import { RenderNode } from '@jianlinzhou/cyan_engine';
+import { BoxConstraints, Size } from '@jianlinzhou/cyan_engine';
 
 class CustomShapeNode extends RenderNode {
   private _shapeType: 'star' | 'heart' = 'star';
@@ -378,25 +397,26 @@ Cyan Engine 可以与现有的 React 生态系统无缝集成：
 ```tsx
 import { useRef, useEffect } from 'react';
 import { CyanEngine } from '@jianlinzhou/cyan_engine';
+import { CyanRenderer } from '@jianlinzhou/cyan_engine';
 
 const CanvasApp = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<CyanEngine | null>(null);
 
   useEffect(() => {
-    if (canvasRef.current && !engineRef.current) {
+    if (!engineRef.current) {
       engineRef.current = new CyanEngine({
-        canvas: canvasRef.current,
+        containerId: 'canvas-root',
+        width: window.innerWidth,
+        height: window.innerHeight,
       });
-      engineRef.current.start();
     }
 
     return () => {
-      engineRef.current?.stop();
+      // 清理资源
     };
   }, []);
 
-  return <canvas ref={canvasRef} />;
+  return <div id="canvas-root" style={{ width: '100%', height: '100vh' }} />;
 };
 ```
 
