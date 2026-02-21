@@ -8,8 +8,8 @@ let engine = (window as any).__CYAN_ENGINE__;
 if (!engine) {
   engine = new CyanEngine({
     containerId: 'root',
-    width: 800,
-    height: 600
+    width: window.innerWidth,
+    height: window.innerHeight
   });
 
   // 将实例挂载到 window（用于热更新保持状态）

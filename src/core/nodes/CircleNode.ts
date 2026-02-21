@@ -7,7 +7,9 @@ export class CircleNode extends RenderNode {
   private _prefWidth?: number;
   private _prefHeight?: number;
 
-  public get color() { return this._color; }
+  public get color() {
+    return this._color;
+  }
   public set color(v: string) {
     if (this._color === v) return;
     this._color = v;
@@ -28,7 +30,7 @@ export class CircleNode extends RenderNode {
   performLayout(constraints: BoxConstraints): Size {
     return {
       width: this._prefWidth ?? 100,
-      height: this._prefHeight ?? 100
+      height: this._prefHeight ?? 100,
     };
   }
 
