@@ -3,6 +3,7 @@ import { RenderNode } from './RenderNode';
 import { PipelineOwner } from './PipelineOwner';
 import { EventManager } from './events/index';
 import { ScrollEventManager } from './events/ScrollEventManager';
+import { SpatialIndex } from './spatial/SpatialIndex';
 
 export interface EngineOptions {
   // 画布
@@ -27,8 +28,11 @@ export class CyanEngine {
   private _frameCount: number = 0;
   private eventManager: EventManager;
   private scrollEventManager: ScrollEventManager;
+  public readonly spatialIndex = new SpatialIndex();
 
-  public get root(): RenderNode | null { return this._root; }
+  public get root(): RenderNode | null {
+    return this._root;
+  }
   public set root(node: RenderNode | null) {
     if (this._root) this._root.detach();
     this._root = node;
@@ -53,9 +57,13 @@ export class CyanEngine {
     window.addEventListener('resize', () => this.resize());
 
     this.ticker = new Ticker();
-    this.eventManager = new EventManager(this.canvas, () => this.root);
+    this.eventManager = new EventManager(this.canvas, () => this.root, this.spatialIndex);
     this.scrollEventManager = new ScrollEventManager(
-      this.canvas, () => this.root, () => { this._needsFrame = true; }
+      this.canvas,
+      () => this.root,
+      () => {
+        this._needsFrame = true;
+      }
     );
     this.setupCanvas(options.pixelRatio || window.devicePixelRatio);
     this.initPipeline();
@@ -99,6 +107,7 @@ export class CyanEngine {
     // 设置画布背景为白色
     this.canvas.style.background = '#ffffff';
 
+    this.eventManager?.invalidateCache();
     if (this.root) this.root.markNeedsLayout();
     this._needsFrame = true;
   }
@@ -148,6 +157,9 @@ export class CyanEngine {
       minHeight: 0,
     });
 
+    // 2.5 重建空间索引
+    this.spatialIndex.rebuild(this.root);
+
     // 3. 离屏全量绘制（先填白底以避免透明/黑底问题）
     const offCtx = this._offscreenCtx;
     offCtx.save();
@@ -182,7 +194,6 @@ export class CyanEngine {
     this.pipelineOwner.flushPaint();
   }
 
-  /** Backward-compat: external code can still request a frame */
   public markNeedsPaint(_node?: RenderNode) {
     this._needsFrame = true;
   }

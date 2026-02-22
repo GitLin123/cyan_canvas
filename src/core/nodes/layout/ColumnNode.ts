@@ -26,6 +26,8 @@ export class ColumnNode extends RenderNode {
     const containerWidth =
       this._preferredWidth ??
       (constraints.maxWidth === Number.POSITIVE_INFINITY ? constraints.minWidth : constraints.maxWidth);
+    // 子项布局用的交叉轴约束：无界时传原始约束，让子项报告自然宽度
+    const childMaxWidth = containerWidth > 0 ? containerWidth : constraints.maxWidth;
 
     // === 第2步: 布局所有非 flex 子項（用無界高度約束獲取自然高度）===
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
@@ -39,7 +41,7 @@ export class ColumnNode extends RenderNode {
         // 高度约束：无界，让子项报告自然高度
         child.layout({
           minWidth: 0,
-          maxWidth: containerWidth,
+          maxWidth: childMaxWidth,
           minHeight: 0,
           maxHeight: Number.POSITIVE_INFINITY,
         });
@@ -67,7 +69,7 @@ export class ColumnNode extends RenderNode {
         const flexAlloc = Math.max(0, Math.floor((child.flex || 0) * flexUnit));
         child.layout({
           minWidth: 0,
-          maxWidth: containerWidth,
+          maxWidth: childMaxWidth,
           minHeight: flexAlloc,
           maxHeight: flexAlloc,
         });
@@ -124,19 +126,20 @@ export class ColumnNode extends RenderNode {
     }
 
     // === 第7步: 处理交叉轴对齐（宽度） ===
+    const crossWidth = containerWidth > 0 ? containerWidth : maxChildWidth;
     this.children.forEach((child) => {
       let cx = 0;
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.Center:
-          cx = Math.max(0, Math.floor((containerWidth - child.width) / 2));
+          cx = Math.max(0, Math.floor((crossWidth - child.width) / 2));
           break;
         case CrossAxisAlignment.End:
-          cx = Math.max(0, Math.floor(containerWidth - child.width));
+          cx = Math.max(0, Math.floor(crossWidth - child.width));
           break;
         case CrossAxisAlignment.Stretch:
           child.layout({
-            minWidth: containerWidth,
-            maxWidth: containerWidth,
+            minWidth: crossWidth,
+            maxWidth: crossWidth,
             minHeight: child.height,
             maxHeight: child.height,
           });

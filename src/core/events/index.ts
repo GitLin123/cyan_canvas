@@ -1,9 +1,22 @@
 import { RenderNode } from '../RenderNode';
-import { CyanInputEventType } from '../types/events';
+import { CyanPointerEvent, PointerEventType, PointerDeviceKind } from './PointerEvent';
+import { GestureBinding } from './GestureBinding';
+import { GestureDetectorNode } from '../nodes/GestureDetectorNode';
+import type { SpatialIndex } from '../spatial/SpatialIndex';
 
 export class EventManager {
   private lastHoveredNode: RenderNode | null = null;
-  private focusedNode: RenderNode | null = null;
+  public readonly gestureBinding = new GestureBinding();
+  private _nextPointer = 0;
+  private _touchPointerMap = new Map<number, number>();
+  private _bindingDirty = true;
+
+  // 缓存坐标变换参数，避免每次事件都调用 getComputedStyle
+  private _cachedRect: DOMRect | null = null;
+  private _cachedScaleX = 1;
+  private _cachedScaleY = 1;
+  private _cachedOffsetX = 0;
+  private _cachedOffsetY = 0;
 
   private readonly handlerMap: Record<string, keyof RenderNode> = {
     'click': 'onClick',
@@ -16,77 +29,181 @@ export class EventManager {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private getRoot: () => RenderNode | null
+    private getRoot: () => RenderNode | null,
+    private spatialIndex: SpatialIndex | null = null,
   ) {
+    this.gestureBinding.spatialIndex = spatialIndex;
     this.init();
   }
 
+  /** 当树结构变化时调用，标记需要重新注入 binding */
+  markBindingDirty() { this._bindingDirty = true; }
+
+  /** resize 后需要刷新坐标缓存 */
+  invalidateCache() { this._cachedRect = null; }
+
   private init() {
-    // 自动绑定所有定义的事件
-    Object.keys(this.handlerMap).forEach((type) => {
-      this.canvas.addEventListener(type, ((e: MouseEvent | WheelEvent) => {
-        const root = this.getRoot();
-        if (!root) return;
+    this.initMouseEvents();
+    this.initTouchEvents();
+  }
 
-        const { x, y } = this.calculateLogicalPosition(e.clientX, e.clientY);
-        const target = root.hitTest(x - root.x, y - root.y);
-
-        this.dispatchEvent(target, type as CyanInputEventType, e);
-      }) as EventListener);
+  private initMouseEvents() {
+    this.canvas.addEventListener('mousedown', (e) => {
+      const pos = this.getLogicalPos(e.clientX, e.clientY);
+      const pointer = this._nextPointer++;
+      this.dispatchAll(PointerEventType.down, pointer, pos, PointerDeviceKind.mouse, e, 'mousedown');
     });
-  }
 
-  private calculateLogicalPosition(clientX: number, clientY: number) {
-    const rect = this.canvas.getBoundingClientRect();
-    const style = window.getComputedStyle(this.canvas);
+    this.canvas.addEventListener('mousemove', (e) => {
+      const pos = this.getLogicalPos(e.clientX, e.clientY);
+      const ptrType = e.buttons > 0 ? PointerEventType.move : PointerEventType.hover;
+      const pointer = e.buttons > 0 ? this._nextPointer - 1 : 0;
+      this.dispatchAll(ptrType, pointer, pos, PointerDeviceKind.mouse, e, 'mousemove');
+    });
 
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    const borderTop = parseFloat(style.borderTopWidth) || 0;
-    const paddingLeft = parseFloat(style.paddingLeft) || 0;
-    const paddingTop = parseFloat(style.paddingTop) || 0;
+    this.canvas.addEventListener('mouseup', (e) => {
+      const pos = this.getLogicalPos(e.clientX, e.clientY);
+      this.dispatchAll(PointerEventType.up, this._nextPointer - 1, pos, PointerDeviceKind.mouse, e, 'mouseup');
+    });
 
-    // 逻辑尺寸计算
-    const pr = window.devicePixelRatio || 1;
-    const logicalCanvasWidth = this.canvas.width / pr;
-    const logicalCanvasHeight = this.canvas.height / pr;
-
-    const contentWidth = rect.width - borderLeft - paddingLeft - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
-    const contentHeight = rect.height - borderTop - paddingTop - (parseFloat(style.borderBottomWidth) || 0) - (parseFloat(style.paddingBottom) || 0);
-
-    const scaleX = contentWidth > 0 ? logicalCanvasWidth / contentWidth : 1;
-    const scaleY = contentHeight > 0 ? logicalCanvasHeight / contentHeight : 1;
-
-    return {
-      x: (clientX - rect.left - borderLeft - paddingLeft) * scaleX,
-      y: (clientY - rect.top - borderTop - paddingTop) * scaleY,
-    };
-  }
-
-  private dispatchEvent(target: RenderNode | null, type: CyanInputEventType, e: any) {
-    if (type === 'mousemove') {
-      this.handleHoverState(target, e);
-    }
-
-    // 阻止右键菜单默认行为
-    if (type === 'contextmenu') {
+    this.canvas.addEventListener('click', (e) => this.dispatchLegacy('click', e));
+    this.canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
+      this.dispatchLegacy('contextmenu', e);
+    });
+    this.canvas.addEventListener('wheel', (e) => this.dispatchLegacy('wheel', e), { passive: false });
+  }
+
+  private initTouchEvents() {
+    this.canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        const pointer = this._nextPointer++;
+        this._touchPointerMap.set(t.identifier, pointer);
+        const pos = this.getLogicalPos(t.clientX, t.clientY);
+        this.dispatchPointer(PointerEventType.down, pointer, pos, PointerDeviceKind.touch, e);
+      }
+    }, { passive: false });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        const pointer = this._touchPointerMap.get(t.identifier);
+        if (pointer === undefined) continue;
+        const pos = this.getLogicalPos(t.clientX, t.clientY);
+        this.dispatchPointer(PointerEventType.move, pointer, pos, PointerDeviceKind.touch, e);
+      }
+    }, { passive: false });
+
+    const onTouchEnd = (type: PointerEventType) => (e: TouchEvent) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        const pointer = this._touchPointerMap.get(t.identifier);
+        if (pointer === undefined) continue;
+        const pos = this.getLogicalPos(t.clientX, t.clientY);
+        this.dispatchPointer(type, pointer, pos, PointerDeviceKind.touch, e);
+        this._touchPointerMap.delete(t.identifier);
+      }
+    };
+    this.canvas.addEventListener('touchend', onTouchEnd(PointerEventType.up));
+    this.canvas.addEventListener('touchcancel', onTouchEnd(PointerEventType.cancel));
+  }
+
+  /** 合并分发：新系统 + 旧系统共用一次坐标计算 */
+  private dispatchAll(
+    type: PointerEventType, pointer: number,
+    pos: { x: number; y: number },
+    deviceKind: PointerDeviceKind,
+    original: MouseEvent | TouchEvent | WheelEvent,
+    legacyType: string,
+  ) {
+    this.dispatchPointer(type, pointer, pos, deviceKind, original);
+    this.dispatchLegacyWithPos(legacyType, original as MouseEvent, pos);
+  }
+
+  private dispatchPointer(
+    type: PointerEventType, pointer: number,
+    pos: { x: number; y: number },
+    deviceKind: PointerDeviceKind,
+    original: MouseEvent | TouchEvent | WheelEvent,
+  ) {
+    const root = this.getRoot();
+    if (!root) return;
+    if (this._bindingDirty) {
+      this.injectBinding(root);
+      this._bindingDirty = false;
+    }
+    const event = new CyanPointerEvent(type, pointer, pos.x, pos.y, deviceKind, 0, 1, 0, 0, original);
+    this.gestureBinding.handlePointerEvent(event, root);
+  }
+
+  private injectBinding(node: RenderNode) {
+    if (node instanceof GestureDetectorNode && !node._binding) {
+      node._binding = this.gestureBinding;
+    }
+    for (const child of node.children) this.injectBinding(child);
+  }
+
+  /** 旧事件分发（click/contextmenu/wheel 独立走这条路径） */
+  private dispatchLegacy(type: string, e: MouseEvent | WheelEvent) {
+    const pos = this.getLogicalPos(e.clientX, e.clientY);
+    this.dispatchLegacyWithPos(type, e, pos);
+  }
+
+  private dispatchLegacyWithPos(type: string, e: MouseEvent | WheelEvent, pos: { x: number; y: number }) {
+    const root = this.getRoot();
+    if (!root) return;
+
+    const target = this.spatialIndex
+      ? this.spatialIndex.hitTestFirst(pos.x, pos.y)
+      : root.hitTestLegacy(pos.x - root.x, pos.y - root.y);
+
+    if (type === 'mousemove') {
+      this.handleHoverState(target, e as MouseEvent);
     }
 
     if (!target) return;
-
     const handlerName = this.handlerMap[type];
-    if (handlerName) {
-      // 事件冒泡：从目标节点向上查找第一个有对应处理器的节点
-      let node: RenderNode | null = target;
-      while (node) {
-        const handler = node[handlerName] as Function;
-        if (typeof handler === 'function') {
-          handler.call(node, e);
-          break;
-        }
-        node = node.parent;
+    if (!handlerName) return;
+
+    let node: RenderNode | null = target;
+    while (node) {
+      const handler = node[handlerName] as Function;
+      if (typeof handler === 'function') {
+        handler.call(node, e);
+        break;
       }
+      node = node.parent;
     }
+  }
+
+  private getLogicalPos(clientX: number, clientY: number) {
+    if (!this._cachedRect) this._updateCache();
+    return {
+      x: (clientX - this._cachedOffsetX) * this._cachedScaleX,
+      y: (clientY - this._cachedOffsetY) * this._cachedScaleY,
+    };
+  }
+
+  private _updateCache() {
+    const rect = this.canvas.getBoundingClientRect();
+    const style = window.getComputedStyle(this.canvas);
+    const bL = parseFloat(style.borderLeftWidth) || 0;
+    const bT = parseFloat(style.borderTopWidth) || 0;
+    const pL = parseFloat(style.paddingLeft) || 0;
+    const pT = parseFloat(style.paddingTop) || 0;
+    const pr = window.devicePixelRatio || 1;
+    const logW = this.canvas.width / pr;
+    const logH = this.canvas.height / pr;
+    const cW = rect.width - bL - pL - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
+    const cH = rect.height - bT - pT - (parseFloat(style.borderBottomWidth) || 0) - (parseFloat(style.paddingBottom) || 0);
+    this._cachedRect = rect;
+    this._cachedOffsetX = rect.left + bL + pL;
+    this._cachedOffsetY = rect.top + bT + pT;
+    this._cachedScaleX = cW > 0 ? logW / cW : 1;
+    this._cachedScaleY = cH > 0 ? logH / cH : 1;
   }
 
   private handleHoverState(currentTarget: RenderNode | null, e: MouseEvent) {
@@ -102,18 +219,4 @@ export class EventManager {
       this.lastHoveredNode = currentTarget;
     }
   }
-
-  private initKeyboardEvents() {
-    window.addEventListener('keydown', (e) => {
-      if (this.focusedNode && this.focusedNode.onKeyDown) {
-        this.focusedNode.onKeyDown({
-          key: e.key,
-          code: e.code,
-          ctrlKey: e.ctrlKey,
-          shiftKey: e.shiftKey
-        });
-      }
-    });
-  }
-  
 }

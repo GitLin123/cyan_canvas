@@ -255,3 +255,95 @@ export type SingleChildScrollViewProps = {
   physics?: 'always' | 'bouncing' | 'never';
   clipBehavior?: Clip;
 } & CyanEventHandlers;
+
+export type ListenerProps = {
+  onPointerDown?: (e: any) => void;
+  onPointerMove?: (e: any) => void;
+  onPointerUp?: (e: any) => void;
+  onPointerCancel?: (e: any) => void;
+};
+
+export type GestureDetectorProps = {
+  onTap?: () => void;
+  onTapDown?: (e: any) => void;
+  onTapUp?: (e: any) => void;
+  onLongPress?: (e: any) => void;
+  onPanStart?: (e: any) => void;
+  onPanUpdate?: (dx: number, dy: number, e: any) => void;
+  onPanEnd?: (e: any) => void;
+};
+
+export type ExpandedProps = {
+  flex?: number;
+} & CyanEventHandlers;
+
+export type SpacerProps = {
+  flex?: number;
+} & CyanEventHandlers;
+
+export type PositionedProps = {
+  top?: number;
+  right?: number;
+  bottom?: number;
+  left?: number;
+  width?: number;
+  height?: number;
+} & CyanEventHandlers;
+
+export type OpacityProps = {
+  opacity?: number;
+} & CyanEventHandlers;
+
+export type ClipRRectProps = {
+  borderRadius?: number;
+  width?: number;
+  height?: number;
+} & CyanEventHandlers;
+
+export type TransformProps = {
+  translateX?: number;
+  translateY?: number;
+  scaleX?: number;
+  scaleY?: number;
+  rotation?: number;
+  originX?: number;
+  originY?: number;
+} & CyanEventHandlers;
+
+export type ConstrainedBoxProps = {
+  constraintMinWidth?: number;
+  constraintMaxWidth?: number;
+  constraintMinHeight?: number;
+  constraintMaxHeight?: number;
+} & CyanEventHandlers;
+
+export type FractionallySizedBoxProps = {
+  widthFactor?: number;
+  heightFactor?: number;
+  alignment?: Alignment;
+} & CyanEventHandlers;
+
+export type LimitedBoxProps = {
+  maxLimitWidth?: number;
+  maxLimitHeight?: number;
+} & CyanEventHandlers;
+
+export type FittedBoxProps = {
+  fit?: BoxFit;
+  width?: number;
+  height?: number;
+} & CyanEventHandlers;
+
+export type OverflowBoxProps = {
+  overflowMinWidth?: number;
+  overflowMaxWidth?: number;
+  overflowMinHeight?: number;
+  overflowMaxHeight?: number;
+  alignment?: Alignment;
+  width?: number;
+  height?: number;
+} & CyanEventHandlers;
+
+export type OffstageProps = {
+  offstage?: boolean;
+} & CyanEventHandlers;

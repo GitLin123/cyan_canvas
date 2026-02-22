@@ -1,6 +1,5 @@
 /**
  * AnimatedBuilder - 动画构建器
- * 对标 Flutter 的 AnimatedBuilder
  *
  * 用途：
  * - 在动画值变化时重建子组件

@@ -1,6 +1,5 @@
 /**
  * Curves - 预定义的缓动曲线集合
- * 对标 Flutter 的 Curves
  */
 
 import { Linear, EaseIn, EaseOut, EaseInOut, Cubic, ElasticOut, BounceOut, FastOutSlowIn, Curve } from './Curve';

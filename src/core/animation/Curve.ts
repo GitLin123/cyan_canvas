@@ -1,7 +1,6 @@
 /**
  * Curve - 缓动曲线实现
  * 用于将线性的 [0, 1] 时间映射到非线性的动画值
- * 对标 Flutter 的 Curve
  */
 
 import type { Curve } from '../types/animation';

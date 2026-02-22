@@ -26,6 +26,8 @@ export class RowNode extends RenderNode {
     const containerHeight =
       this._preferredHeight ??
       (constraints.maxHeight === Number.POSITIVE_INFINITY ? constraints.minHeight : constraints.maxHeight);
+    // 子项布局用的交叉轴约束：无界时传 INFINITY，让子项报告自然高度
+    const childMaxHeight = containerHeight > 0 ? containerHeight : constraints.maxHeight;
 
     // === 第1.5步: 确定容器宽度（用于 flex 分配基准） ===
     // 优先使用 preferredWidth，否则从约束确定
@@ -48,7 +50,7 @@ export class RowNode extends RenderNode {
           minWidth: 0,
           maxWidth: Number.POSITIVE_INFINITY,
           minHeight: 0,
-          maxHeight: containerHeight,
+          maxHeight: childMaxHeight,
         });
         usedWidth += child.width;
         maxChildHeight = Math.max(maxChildHeight, child.height);
@@ -69,7 +71,7 @@ export class RowNode extends RenderNode {
           minWidth: flexAlloc,
           maxWidth: flexAlloc,
           minHeight: 0,
-          maxHeight: containerHeight,
+          maxHeight: childMaxHeight,
         });
         usedWidth += child.width;
         maxChildHeight = Math.max(maxChildHeight, child.height);
@@ -124,21 +126,22 @@ export class RowNode extends RenderNode {
     }
 
     // === 第7步: 处理交叉轴对齐（高度） ===
+    const crossHeight = containerHeight > 0 ? containerHeight : maxChildHeight;
     this.children.forEach((child) => {
       let cy = 0;
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.Center:
-          cy = Math.max(0, Math.floor((containerHeight - child.height) / 2));
+          cy = Math.max(0, Math.floor((crossHeight - child.height) / 2));
           break;
         case CrossAxisAlignment.End:
-          cy = Math.max(0, Math.floor(containerHeight - child.height));
+          cy = Math.max(0, Math.floor(crossHeight - child.height));
           break;
         case CrossAxisAlignment.Stretch:
           child.layout({
             minWidth: child.width,
             maxWidth: child.width,
-            minHeight: containerHeight,
-            maxHeight: containerHeight,
+            minHeight: crossHeight,
+            maxHeight: crossHeight,
           });
           break;
       }

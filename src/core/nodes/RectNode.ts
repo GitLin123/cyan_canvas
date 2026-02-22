@@ -72,7 +72,7 @@ export class RectNode extends RenderNode {
 
   paintSelf(ctx: CanvasRenderingContext2D): void {
     ctx.save();
-    ctx.globalAlpha = this._opacity;
+    ctx.globalAlpha *= this._opacity;
     const w = this.width;
     const h = this.height;
     if (this._borderRadius > 0) {

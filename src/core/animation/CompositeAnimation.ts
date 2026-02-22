@@ -1,6 +1,5 @@
 /**
  * CompositeAnimation - 组合动画
- * 对标 Flutter 的组合动画系统
  *
  * 包含两个核心类：
  * - SequenceAnimation: 序列动画，多个动画依次执行

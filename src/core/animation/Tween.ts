@@ -1,7 +1,6 @@
 /**
  * Tween - 值插值器
  * 用于在两个值之间进行线性插值
- * 对标 Flutter 的 Tween<T>
  */
 
 import type { Animatable } from '../types/animation';

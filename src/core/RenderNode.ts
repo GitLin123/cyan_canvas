@@ -2,6 +2,8 @@ import { Size } from './types/node';
 import { BoxConstraints, BoxConstraintsHelper } from './types/container';
 import { CyanEventHandlers, CyanKeyboardEvent } from './types/events';
 import type { PipelineOwner } from './PipelineOwner';
+import { HitTestResult, HitTestEntry } from './events/HitTestResult';
+import { CyanPointerEvent } from './events/PointerEvent';
 
 export abstract class RenderNode implements CyanEventHandlers {
   public parent: RenderNode | null = null;
@@ -29,6 +31,10 @@ export abstract class RenderNode implements CyanEventHandlers {
   private _depth: number = 0;
   private _relayoutBoundary: RenderNode | null = null;
   private _constraints: BoxConstraints | null = null;
+
+  // --- World AABB (由 SpatialIndex 在布局后统一计算) ---
+  public _worldX: number = 0;
+  public _worldY: number = 0;
 
   // --- Scroll support ---
   public scrollOffsetX: number = 0;
@@ -287,19 +293,40 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   // --- Hit testing ---
 
-  hitTest(localX: number, localY: number): RenderNode | null {
-    if (!this.visible) return null;
+  hitTest(result: HitTestResult, localX: number, localY: number): boolean {
+    if (!this.visible) return false;
     for (let i = this.children.length - 1; i >= 0; i--) {
       const child = this.children[i];
-      const target = child.hitTest(
-        localX - child.x - child._offsetX,
-        localY - child.y - child._offsetY
-      );
-      if (target) return target;
+      const childX = localX - child.x - child._offsetX;
+      const childY = localY - child.y - child._offsetY;
+      if (child.hitTest(result, childX, childY)) break;
     }
     if (localX >= 0 && localX <= this.width &&
-        localY >= 0 && localY <= this.height) return this;
-    return null;
+        localY >= 0 && localY <= this.height) {
+      result.add(new HitTestEntry(this, localX, localY));
+      return true;
+    }
+    return false;
+  }
+
+  // 兼容旧 API
+  hitTestLegacy(localX: number, localY: number): RenderNode | null {
+    const result = new HitTestResult();
+    this.hitTest(result, localX, localY);
+    return result.path.length > 0 ? result.path[0].target : null;
+  }
+
+  // 指针事件处理（子类可覆写）
+  handlePointerEvent?(event: CyanPointerEvent): void;
+
+  // --- World bounds update (called by SpatialIndex after layout) ---
+
+  updateWorldBounds(parentWorldX = 0, parentWorldY = 0, parentScrollX = 0, parentScrollY = 0) {
+    this._worldX = parentWorldX + this._x + this._offsetX - parentScrollX;
+    this._worldY = parentWorldY + this._y + this._offsetY - parentScrollY;
+    for (const child of this.children) {
+      child.updateWorldBounds(this._worldX, this._worldY, this.scrollOffsetX, this.scrollOffsetY);
+    }
   }
 
   // --- Scroll ---

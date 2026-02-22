@@ -21,12 +21,19 @@ export class AspectRatioNode extends RenderNode {
     let boxHeight = constraints.maxHeight;
 
     if (this.aspectRatio > 0) {
-      // 如果宽度受限，根据纵横比计算高度
-      if (boxWidth < constraints.maxWidth) {
+      const widthFinite = constraints.maxWidth !== Number.POSITIVE_INFINITY;
+      const heightFinite = constraints.maxHeight !== Number.POSITIVE_INFINITY;
+
+      if (widthFinite) {
         boxHeight = boxWidth / this.aspectRatio;
-      } else {
-        // 否则根据高度计算宽度
+      } else if (heightFinite) {
         boxWidth = boxHeight * this.aspectRatio;
+      } else if (this.children.length > 0) {
+        // 双无界：先用子项自然尺寸，再按比例调整
+        const child = this.children[0];
+        child.layout({ minWidth: 0, maxWidth: Number.POSITIVE_INFINITY, minHeight: 0, maxHeight: Number.POSITIVE_INFINITY });
+        boxWidth = child.width;
+        boxHeight = boxWidth / this.aspectRatio;
       }
 
       // 应用约束

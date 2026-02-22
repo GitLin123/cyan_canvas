@@ -30,7 +30,6 @@ export class PipelineOwner {
   }
 
   flushLayout() {
-    // Sort by depth (parents first) to avoid redundant layouts
     this._nodesNeedingLayout.sort((a, b) => a.depth - b.depth);
     while (this._nodesNeedingLayout.length > 0) {
       const node = this._nodesNeedingLayout.shift()!;

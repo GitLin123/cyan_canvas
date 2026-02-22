@@ -1,6 +1,5 @@
 /**
  * CurvedAnimation - 为另一个动画应用曲线变换
- * 对标 Flutter 的 CurvedAnimation
  *
  * 用途：
  * - 为已有的 Animation 应用缓动曲线
@@ -55,7 +54,7 @@ export class CurvedAnimation extends Animation {
     const parentStatus = this._parentAnimation.status;
 
     // 根据方向选择曲线
-    const curve = this._shouldUseReverseCurve() ? (this._reverseCurve || this._curve) : this._curve;
+    const curve = this._shouldUseReverseCurve() ? this._reverseCurve || this._curve : this._curve;
 
     // 应用曲线变换
     const newValue = curve.transform(parentValue);

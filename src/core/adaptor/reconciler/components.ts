@@ -18,6 +18,20 @@ import {
   FlexProps,
   WrapProps,
   SingleChildScrollViewProps,
+  GestureDetectorProps,
+  ListenerProps,
+  ExpandedProps,
+  SpacerProps,
+  PositionedProps,
+  OpacityProps,
+  ClipRRectProps,
+  TransformProps,
+  ConstrainedBoxProps,
+  FractionallySizedBoxProps,
+  LimitedBoxProps,
+  FittedBoxProps,
+  OverflowBoxProps,
+  OffstageProps,
 } from '../../types/node';
 
 function createCyanComponent<P = any>(tagName: string) {
@@ -45,3 +59,17 @@ export const AspectRatio = createCyanComponent<AspectRatioProps>('cyan-aspectrat
 export const Flex = createCyanComponent<FlexProps>('cyan-flex');
 export const Wrap = createCyanComponent<WrapProps>('cyan-wrap');
 export const SingleChildScrollView = createCyanComponent<SingleChildScrollViewProps>('cyan-singlechildscrollview');
+export const GestureDetector = createCyanComponent<GestureDetectorProps>('cyan-gesturedetector');
+export const Listener = createCyanComponent<ListenerProps>('cyan-listener');
+export const Expanded = createCyanComponent<ExpandedProps>('cyan-expanded');
+export const Spacer = createCyanComponent<SpacerProps>('cyan-spacer');
+export const Positioned = createCyanComponent<PositionedProps>('cyan-positioned');
+export const Opacity = createCyanComponent<OpacityProps>('cyan-opacity');
+export const ClipRRect = createCyanComponent<ClipRRectProps>('cyan-cliprrect');
+export const Transform = createCyanComponent<TransformProps>('cyan-transform');
+export const ConstrainedBox = createCyanComponent<ConstrainedBoxProps>('cyan-constrainedbox');
+export const FractionallySizedBox = createCyanComponent<FractionallySizedBoxProps>('cyan-fractionallysizedbox');
+export const LimitedBox = createCyanComponent<LimitedBoxProps>('cyan-limitedbox');
+export const FittedBox = createCyanComponent<FittedBoxProps>('cyan-fittedbox');
+export const OverflowBox = createCyanComponent<OverflowBoxProps>('cyan-overflowbox');
+export const Offstage = createCyanComponent<OffstageProps>('cyan-offstage');

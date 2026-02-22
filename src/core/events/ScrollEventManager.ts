@@ -1,9 +1,10 @@
-import { RenderNode } from '../RenderNode';
-
 /**
  * ScrollEventManager - 处理滚动事件的专门管理器
  * 负责监听滚轮和键盘事件，并将其转化为滚动操作
  */
+
+import { RenderNode } from '../RenderNode';
+
 export class ScrollEventManager {
   private readonly scrollSensitivity = {
     wheel: 1, // 滚轮灵敏度，值越小越灵敏

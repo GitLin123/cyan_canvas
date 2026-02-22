@@ -1,7 +1,6 @@
 /**
  * AnimationController - 动画控制器
  * 用于控制动画的播放、停止、反向等操作
- * 对标 Flutter 的 AnimationController
  */
 
 import { Animation, AnimationStatus, AnimationListener, AnimationStatusListener } from './Animation';

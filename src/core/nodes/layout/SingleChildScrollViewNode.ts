@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper, Direction } from '../../types/container';
 import { Size } from '../../types/node';
+import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
 
 export class SingleChildScrollViewNode extends RenderNode {
   public direction: Direction = Direction.vertical; // 滚动方向，默认为竖直滚动
@@ -90,18 +91,17 @@ export class SingleChildScrollViewNode extends RenderNode {
     ctx.restore();
   }
 
-  hitTest(localX: number, localY: number): import('../../RenderNode').RenderNode | null {
-    if (!this.visible) return null;
-    if (localX < 0 || localX > this.width || localY < 0 || localY > this.height) return null;
+  hitTest(result: HitTestResult, localX: number, localY: number): boolean {
+    if (!this.visible) return false;
+    if (localX < 0 || localX > this.width || localY < 0 || localY > this.height) return false;
     for (let i = this.children.length - 1; i >= 0; i--) {
       const child = this.children[i];
-      const target = child.hitTest(
-        localX + this.scrollOffsetX - child.x - child._offsetX,
-        localY + this.scrollOffsetY - child.y - child._offsetY
-      );
-      if (target) return target;
+      const childX = localX + this.scrollOffsetX - child.x - child.offsetX;
+      const childY = localY + this.scrollOffsetY - child.y - child.offsetY;
+      if (child.hitTest(result, childX, childY)) break;
     }
-    return this;
+    result.add(new HitTestEntry(this, localX, localY));
+    return true;
   }
 
   paintSelf(_ctx: CanvasRenderingContext2D): void {
