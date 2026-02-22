@@ -1,20 +1,10 @@
-import { RenderNode } from '../RenderNode';
+import { ShapeNode } from './base/ShapeNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../types/container';
 import { Size } from '../types/node';
 
-export class RectNode extends RenderNode {
-  private _color: string = 'white';
+export class RectNode extends ShapeNode {
   private _borderRadius: number = 0;
   private _opacity: number = 1;
-
-  public get color() {
-    return this._color;
-  }
-  public set color(v: string) {
-    if (this._color === v) return;
-    this._color = v;
-    this.markNeedsPaint();
-  }
 
   public get borderRadius() {
     return this._borderRadius;
@@ -35,6 +25,9 @@ export class RectNode extends RenderNode {
     this.markNeedsPaint();
   }
 
+  // 注意：RectNode 使用 _preferredWidth/_preferredHeight（继承自 RenderNode）
+  // 而不是 ShapeNode 的 _prefWidth/_prefHeight
+  // 需要覆盖 performLayout 以使用正确的属性
   public set preferredWidth(v: number | undefined) {
     this._preferredWidth = v;
     this.markNeedsLayout();
@@ -44,18 +37,14 @@ export class RectNode extends RenderNode {
     this.markNeedsLayout();
   }
 
-  // Flutter Box 模型：返回首选尺寸
-  // 如果显式指定了尺寸，返回那个尺寸；否则返回默认的 100x100
   performLayout(constraints: BoxConstraints): Size {
     if (!BoxConstraintsHelper.isValid(constraints)) {
       return { width: 100, height: 100 };
     }
 
-    // 优先使用 preferredWidth/preferredHeight，否则用默认值
     const prefWidth = this._preferredWidth ?? 100;
     const prefHeight = this._preferredHeight ?? 100;
 
-    // 返回首选尺寸（RenderNode.layout 会负责 clamp 到约束范围内）
     return { width: prefWidth, height: prefHeight };
   }
 

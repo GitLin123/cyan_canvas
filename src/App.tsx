@@ -1,8 +1,8 @@
 import React from 'react'
-import NewNodesDemo from "./test/NewNodesDemo"
+import DirtyRectDemo from "./test/DirtyRectDemo"
 const App = () => {
   return (
-    <NewNodesDemo />
+    <DirtyRectDemo />
   )
 }
 

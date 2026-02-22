@@ -2,6 +2,13 @@
 export { CyanEngine } from './Engine';
 export { RenderNode } from './RenderNode';
 
+// 导出基类（供扩展使用）
+export { ShapeNode } from './nodes/base/ShapeNode';
+export { SingleChildLayoutNode } from './nodes/base/SingleChildLayoutNode';
+
+// 导出工具类
+export { ConstraintUtils } from './utils/ConstraintUtils';
+
 // 导出 Node 类
 export { TextNode } from './nodes/TextNode';
 export { ImageNode } from './nodes/ImageNodes';

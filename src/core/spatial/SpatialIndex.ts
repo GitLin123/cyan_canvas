@@ -1,10 +1,12 @@
 import { RenderNode } from '../RenderNode';
-import { RTree, AABB } from './RTree';
+import { RTree, type AABB } from './RTree';
 import { HitTestResult, HitTestEntry } from '../events/HitTestResult';
 
 export class SpatialIndex {
   private _tree = new RTree();
   private _ready = false;
+  private _hitTestCache = new Map<string, HitTestResult>();
+  private _cacheVersion = 0;
 
   rebuild(root: RenderNode) {
     root.updateWorldBounds();
@@ -12,6 +14,14 @@ export class SpatialIndex {
     this._collect(root, entries);
     this._tree.build(entries);
     this._ready = true;
+    this._invalidateCache();
+  }
+
+  private _invalidateCache() {
+    this._cacheVersion++;
+    if (this._hitTestCache.size > 1000) {
+      this._hitTestCache.clear();
+    }
   }
 
   private _collect(node: RenderNode, out: { node: RenderNode; bbox: AABB }[]) {
@@ -29,6 +39,10 @@ export class SpatialIndex {
   }
 
   hitTest(x: number, y: number): HitTestResult {
+    const cacheKey = `${this._cacheVersion}:${x}:${y}`;
+    const cached = this._hitTestCache.get(cacheKey);
+    if (cached) return cached;
+
     const result = new HitTestResult();
     if (!this._ready) return result;
 
@@ -54,7 +68,14 @@ export class SpatialIndex {
       result.add(new HitTestEntry(node, localX, localY));
     }
 
+    this._hitTestCache.set(cacheKey, result);
     return result;
+  }
+
+  /** 区域查询：返回与给定 AABB 相交的所有节点 */
+  queryRegion(region: AABB): RenderNode[] {
+    if (!this._ready) return [];
+    return this._tree.queryRegion(region);
   }
 
   hitTestFirst(x: number, y: number): RenderNode | null {

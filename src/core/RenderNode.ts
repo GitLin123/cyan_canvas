@@ -182,15 +182,18 @@ export abstract class RenderNode implements CyanEventHandlers {
     this._owner = null;
   }
 
-  // --- Dirty marking (Flutter-style) ---
+  // --- Dirty marking (Flutter-style with incremental layout) ---
 
   markNeedsLayout() {
     if (this._needsLayout) return;
     this._needsLayout = true;
+
+    // 增量布局优化：如果当前节点是 relayout boundary，只标记自己
     if (this._relayoutBoundary === this) {
       this._owner?.addNodeNeedingLayout(this);
       this._owner?.requestVisualUpdate();
     } else if (this.parent) {
+      // 向上传播到最近的 relayout boundary
       this.parent.markNeedsLayout();
     }
     this.markNeedsPaint();
@@ -286,6 +289,7 @@ export abstract class RenderNode implements CyanEventHandlers {
       ctx.translate(-this.scrollOffsetX, -this.scrollOffsetY);
     }
 
+    this._needsPaint = false;
     this.paintSelf(ctx);
     for (const child of this.children) child.paint(ctx);
     ctx.restore();

@@ -1,37 +1,12 @@
-import { RenderNode } from '../RenderNode';
-import { BoxConstraints } from '../types/container';
-import { Size } from '../types/node';
+import { ShapeNode } from './base/ShapeNode';
 
-export class ArrowNode extends RenderNode {
-  private _color: string = 'white';
-  private _prefWidth?: number;
-  private _prefHeight?: number;
-
-  public get color() {
-    return this._color;
+export class ArrowNode extends ShapeNode {
+  // 覆盖默认尺寸
+  protected getDefaultWidth(): number {
+    return 120;
   }
-  public set color(v: string) {
-    if (this._color === v) return;
-    this._color = v;
-    this.markNeedsPaint();
-  }
-
-  public set preferredWidth(v: number | undefined) {
-    if (this._prefWidth === v) return;
-    this._prefWidth = v;
-    this.markNeedsLayout();
-  }
-  public set preferredHeight(v: number | undefined) {
-    if (this._prefHeight === v) return;
-    this._prefHeight = v;
-    this.markNeedsLayout();
-  }
-
-  performLayout(constraints: BoxConstraints): Size {
-    return {
-      width: this._prefWidth ?? 120,
-      height: this._prefHeight ?? 60,
-    };
+  protected getDefaultHeight(): number {
+    return 60;
   }
 
   paintSelf(ctx: CanvasRenderingContext2D): void {

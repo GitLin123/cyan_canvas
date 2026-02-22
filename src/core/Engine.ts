@@ -29,6 +29,8 @@ export class CyanEngine {
   private eventManager: EventManager;
   private scrollEventManager: ScrollEventManager;
   public readonly spatialIndex = new SpatialIndex();
+  public debugDirtyRegions: boolean = false;
+  public debugStats = { dirtyNodeCount: 0, dirtyRegionCount: 0 };
 
   public get root(): RenderNode | null {
     return this._root;
@@ -40,6 +42,7 @@ export class CyanEngine {
       node.parent = null;
       node.attach(this.pipelineOwner);
     }
+    this.pipelineOwner.dirtyRegionManager.markFullRepaint();
     this._needsFrame = true;
   }
 
@@ -62,6 +65,7 @@ export class CyanEngine {
       this.canvas,
       () => this.root,
       () => {
+        this.pipelineOwner.dirtyRegionManager.markFullRepaint();
         this._needsFrame = true;
       }
     );
@@ -108,6 +112,7 @@ export class CyanEngine {
     this.canvas.style.background = '#ffffff';
 
     this.eventManager?.invalidateCache();
+    this.pipelineOwner.dirtyRegionManager.markFullRepaint();
     if (this.root) this.root.markNeedsLayout();
     this._needsFrame = true;
   }
@@ -140,16 +145,15 @@ export class CyanEngine {
   }
 
   /**
-   * 核心管线：Update -> Layout -> Paint
+   * 核心管线：Update -> Layout -> Paint（支持脏矩形局部重绘）
    */
   private runPipeline(delta: number) {
     if (!this.root) return;
-    // 1. 获取基础参数（直接从 canvas 的物理像素尺寸计算逻辑尺寸）
     const pr = window.devicePixelRatio || 1;
-    const width = this.canvas.width / pr; // 逻辑宽度
-    const height = this.canvas.height / pr; // 逻辑高度
+    const width = this.canvas.width / pr;
+    const height = this.canvas.height / pr;
 
-    // 2. 布局（完整布局）
+    // 1. 布局
     this.root.layout({
       maxWidth: width,
       minWidth: 0,
@@ -157,41 +161,102 @@ export class CyanEngine {
       minHeight: 0,
     });
 
-    // 2.5 重建空间索引
+    // 2. 重建空间索引（更新 worldX/worldY）
     this.spatialIndex.rebuild(this.root);
 
-    // 3. 离屏全量绘制（先填白底以避免透明/黑底问题）
-    const offCtx = this._offscreenCtx;
-    offCtx.save();
-    offCtx.setTransform(pr, 0, 0, pr, 0, 0);
-    // 清除并填充白色背景（逻辑像素）
-    offCtx.clearRect(0, 0, width, height);
-    offCtx.fillStyle = '#ffffff';
-    offCtx.fillRect(0, 0, width, height);
-    this.root.paint(offCtx);
-    offCtx.restore();
+    // 3. 收集脏节点的新 bounds，然后获取合并后的脏矩形
+    // Debug: 在 flushPaint 前统计脏节点数
+    this.debugStats.dirtyNodeCount = this.pipelineOwner.dirtyNodeCount;
 
-    // 4. 合成到主画布（物理像素）
-    this.ctx.save();
-    // 使用物理像素坐标进行清屏和绘制，先填白底再绘制离屏内容
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.drawImage(
-      this._offscreenCanvas,
-      0,
-      0,
-      this._offscreenCanvas.width,
-      this._offscreenCanvas.height,
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
-    this.ctx.restore();
+    this.pipelineOwner.flushPaint();
+    const dirtyRegions = this.pipelineOwner.dirtyRegionManager.flush(width, height);
+
+    // Debug: 统计脏矩形数量
+    this.debugStats.dirtyRegionCount = dirtyRegions === null ? -1 : dirtyRegions.length;
+
+    const offCtx = this._offscreenCtx;
+
+    if (dirtyRegions === null) {
+      // --- 全量重绘 ---
+      offCtx.save();
+      offCtx.setTransform(pr, 0, 0, pr, 0, 0);
+      offCtx.clearRect(0, 0, width, height);
+      offCtx.fillStyle = '#ffffff';
+      offCtx.fillRect(0, 0, width, height);
+      this.root.paint(offCtx);
+      offCtx.restore();
+
+      // 合成到主画布
+      this.ctx.save();
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.drawImage(this._offscreenCanvas, 0, 0);
+      this.ctx.restore();
+    } else if (dirtyRegions.length > 0) {
+      // --- 局部重绘：只重绘脏矩形区域 ---
+      offCtx.save();
+      offCtx.setTransform(pr, 0, 0, pr, 0, 0);
+
+      // 构建脏区域 clip path
+      offCtx.beginPath();
+      for (const r of dirtyRegions) {
+        offCtx.rect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
+      }
+      offCtx.clip();
+
+      // 清除脏区域并填白底
+      for (const r of dirtyRegions) {
+        offCtx.clearRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
+        offCtx.fillStyle = '#ffffff';
+        offCtx.fillRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
+      }
+
+      // 重绘整棵树（clip 保证只有脏区域被实际绘制）
+      this.root.paint(offCtx);
+      offCtx.restore();
+
+      // 合成：只拷贝脏区域到主画布
+      this.ctx.save();
+      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      for (const r of dirtyRegions) {
+        const sx = r.minX * pr, sy = r.minY * pr;
+        const sw = (r.maxX - r.minX) * pr, sh = (r.maxY - r.minY) * pr;
+        this.ctx.drawImage(this._offscreenCanvas, sx, sy, sw, sh, sx, sy, sw, sh);
+      }
+      this.ctx.restore();
+    }
+    // dirtyRegions.length === 0: 无脏区域，跳过绘制
+
+    // Debug: 高亮脏区域
+    if (this.debugDirtyRegions) {
+      this.ctx.save();
+      this.ctx.setTransform(pr, 0, 0, pr, 0, 0);
+
+      if (dirtyRegions === null) {
+        // 全量重绘：高亮整个视口
+        this.ctx.fillStyle = 'rgba(255, 0, 0, 0.18)';
+        this.ctx.fillRect(0, 0, width, height);
+        this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(0, 0, width, height);
+      } else if (dirtyRegions.length > 0) {
+        // 局部重绘：高亮脏矩形
+        for (const r of dirtyRegions) {
+          const w = r.maxX - r.minX;
+          const h = r.maxY - r.minY;
+          this.ctx.fillStyle = 'rgba(255, 0, 0, 0.18)';
+          this.ctx.fillRect(r.minX, r.minY, w, h);
+          this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
+          this.ctx.lineWidth = 1.5;
+          this.ctx.strokeRect(r.minX, r.minY, w, h);
+        }
+      }
+
+      this.ctx.restore();
+    }
 
     this._needsFrame = false;
-    this.pipelineOwner.flushPaint();
   }
 
   public markNeedsPaint(_node?: RenderNode) {

@@ -32,6 +32,11 @@ function containsPoint(b: AABB, x: number, y: number) {
   return x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY;
 }
 
+function intersects(a: AABB, b: AABB) {
+  return a.minX <= b.maxX && a.maxX >= b.minX &&
+         a.minY <= b.maxY && a.maxY >= b.minY;
+}
+
 /** STR bulk-load: sort by x-center, slice into √N strips, sort each strip by y-center */
 function buildSTR(entries: LeafEntry[]): RTreeNode {
   if (entries.length <= M) {
@@ -79,10 +84,67 @@ function buildUpper(nodes: RTreeNode[]): RTreeNode {
 
 export class RTree {
   private _root: RTreeNode | null = null;
+  private _pendingInserts: LeafEntry[] = [];
+  private _pendingRemoves: Set<RenderNode> = new Set();
+  private _rebuildThreshold = 50; // 累积50个变更后重建
 
   build(entries: { node: RenderNode; bbox: AABB }[]) {
     if (entries.length === 0) { this._root = null; return; }
     this._root = buildSTR(entries);
+    this._pendingInserts = [];
+    this._pendingRemoves.clear();
+  }
+
+  /** 批量插入节点（延迟重建） */
+  bulkInsert(entries: { node: RenderNode; bbox: AABB }[]) {
+    this._pendingInserts.push(...entries);
+    if (this._pendingInserts.length >= this._rebuildThreshold) {
+      this._flush();
+    }
+  }
+
+  /** 批量删除节点（延迟重建） */
+  bulkRemove(nodes: RenderNode[]) {
+    for (const node of nodes) {
+      this._pendingRemoves.add(node);
+    }
+    if (this._pendingRemoves.size >= this._rebuildThreshold) {
+      this._flush();
+    }
+  }
+
+  /** 强制应用所有待处理的变更 */
+  flush() {
+    this._flush();
+  }
+
+  private _flush() {
+    if (this._pendingInserts.length === 0 && this._pendingRemoves.size === 0) return;
+
+    // 收集所有现有节点
+    const allEntries: LeafEntry[] = [];
+    if (this._root) {
+      this._collectLeaves(this._root, allEntries);
+    }
+
+    // 过滤删除的节点
+    const filtered = allEntries.filter(e => !this._pendingRemoves.has(e.node));
+
+    // 添加新节点
+    filtered.push(...this._pendingInserts);
+
+    // 重建树
+    this.build(filtered);
+  }
+
+  private _collectLeaves(n: RTreeNode, out: LeafEntry[]) {
+    if (n.leaves) {
+      out.push(...n.leaves);
+    } else if (n.children) {
+      for (const child of n.children) {
+        this._collectLeaves(child, out);
+      }
+    }
   }
 
   query(x: number, y: number): RenderNode[] {
@@ -101,6 +163,27 @@ export class RTree {
     } else if (n.children) {
       for (const child of n.children) {
         this._query(child, x, y, out);
+      }
+    }
+  }
+
+  /** 区域查询：返回与给定 AABB 相交的所有节点 */
+  queryRegion(region: AABB): RenderNode[] {
+    const results: RenderNode[] = [];
+    if (!this._root) return results;
+    this._queryRegion(this._root, region, results);
+    return results;
+  }
+
+  private _queryRegion(n: RTreeNode, region: AABB, out: RenderNode[]) {
+    if (!intersects(n.bbox, region)) return;
+    if (n.leaves) {
+      for (const leaf of n.leaves) {
+        if (intersects(leaf.bbox, region)) out.push(leaf.node);
+      }
+    } else if (n.children) {
+      for (const child of n.children) {
+        this._queryRegion(child, region, out);
       }
     }
   }

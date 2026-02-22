@@ -1,8 +1,6 @@
-import { CyanEventHandlers } from '../types/events';
 import {
   MainAxisAlignment,
   CrossAxisAlignment,
-  Alignment,
   Direction,
   TextAlign,
   TextOverflow,
@@ -15,11 +13,17 @@ import {
   BoxShadow,
   Gradient,
   ImageRepeat,
-  BlendMode,
   ColorFilter,
-  Clip,
-  VerticalDirection,
 } from '../types/container';
+import {
+  BaseProps,
+  PositionableProps,
+  PaintableProps,
+  DecorableProps,
+  AlignableProps,
+  ClippableProps,
+  DirectionalProps,
+} from './base-props';
 
 export interface Rect {
   x: number;
@@ -33,42 +37,17 @@ export interface Size {
   height: number;
 }
 
-export type TriangleProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
-  opacity?: number;
-  blendMode?: BlendMode;
-  boxShadow?: BoxShadow[];
-} & CyanEventHandlers;
+// 形状节点 Props - 使用 DecorableProps 基类
+export interface TriangleProps extends DecorableProps {}
 
-export type ArrowProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
-  opacity?: number;
-  blendMode?: BlendMode;
-  boxShadow?: BoxShadow[];
-} & CyanEventHandlers;
+export interface ArrowProps extends DecorableProps {}
 
-export type CircleProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
-  opacity?: number;
-  blendMode?: BlendMode;
-  boxShadow?: BoxShadow[];
+export interface CircleProps extends DecorableProps {
   border?: number;
   borderColor?: string;
-} & CyanEventHandlers;
+}
 
-export type TextProps = {
+export interface TextProps extends BaseProps {
   text?: string;
   fontSize?: number;
   color?: string;
@@ -89,150 +68,104 @@ export type TextProps = {
   decorationColor?: string;
   decorationThickness?: number;
   shadows?: TextShadow[];
-  background?: string; // 背景色
+  background?: string;
   selectable?: boolean;
   softWrap?: boolean;
   semanticLabel?: string;
-} & CyanEventHandlers;
+}
 
-export type ImageProps = {
+export interface ImageProps extends PaintableProps, AlignableProps {
   src: string;
-  width?: number;
-  height?: number;
   boxFit?: BoxFit;
-  opacity?: number;
   repeat?: ImageRepeat;
-  alignment?: Alignment;
-  blendMode?: BlendMode;
   colorFilter?: ColorFilter;
   gaplessPlayback?: boolean;
   filterQuality?: 'low' | 'medium' | 'high';
   semanticLabel?: string;
   matchTextDirection?: boolean;
   centerSlice?: { x: number; y: number; w: number; h: number };
-} & CyanEventHandlers;
+}
 
-export type RectProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
+export interface RectProps extends DecorableProps {
   flex?: number;
   borderRadius?: number;
   border?: number;
   borderColor?: string;
-  boxShadow?: BoxShadow[];
   gradient?: Gradient;
-  opacity?: number;
-  blendMode?: BlendMode;
-} & CyanEventHandlers;
+}
 
-export type ColumnProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
+// Flex 布局节点 Props
+export interface ColumnProps extends PositionableProps, ClippableProps, DirectionalProps {
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
   mainAxisSize?: 'min' | 'max';
-  textDirection?: TextDirection;
-  verticalDirection?: VerticalDirection;
-  clipBehavior?: Clip;
-} & CyanEventHandlers;
+}
 
-export type RowProps = {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
+export interface RowProps extends PositionableProps, ClippableProps, DirectionalProps {
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
   mainAxisSize?: 'min' | 'max';
-  textDirection?: TextDirection;
-  verticalDirection?: VerticalDirection;
-  clipBehavior?: Clip;
-} & CyanEventHandlers;
+}
 
-export type ContainerProps = {
-  x?: number;
-  y?: number;
-  color?: string;
-  width?: number;
-  height?: number;
+export interface ContainerProps extends DecorableProps, AlignableProps, ClippableProps {
   padding?: number;
   margin?: number;
   border?: number;
   borderRadius?: number;
   borderColor?: string;
-  boxShadow?: BoxShadow[];
   gradient?: Gradient;
-  opacity?: number;
-  alignment?: Alignment;
-  clipBehavior?: Clip;
-  blendMode?: BlendMode;
   foregroundDecoration?: BoxShadow[];
   transform?: { scaleX?: number; scaleY?: number; rotateZ?: number };
   semanticContainer?: boolean;
   constraints?: { minWidth?: number; maxWidth?: number; minHeight?: number; maxHeight?: number };
-} & CyanEventHandlers;
+}
 
-export type PaddingProps = {
+export interface PaddingProps extends BaseProps {
   padding?: number;
   paddingTop?: number;
   paddingBottom?: number;
   paddingLeft?: number;
   paddingRight?: number;
-} & CyanEventHandlers;
+}
 
-export type StackProps = {
-  width?: number;
-  height?: number;
-  alignment?: Alignment;
+export interface StackProps extends PositionableProps, AlignableProps, ClippableProps {
   fit?: 'loose' | 'expand';
-  clipBehavior?: Clip;
   textDirection?: TextDirection;
-} & CyanEventHandlers;
+}
 
-export type AlignProps = {
-  alignment?: Alignment;
+export interface AlignProps extends AlignableProps {
   width?: number;
   height?: number;
   widthFactor?: number;
   heightFactor?: number;
-} & CyanEventHandlers;
+}
 
-export type CenterProps = {
+export interface CenterProps extends BaseProps {
   width?: number;
   height?: number;
   widthFactor?: number;
   heightFactor?: number;
-} & CyanEventHandlers;
+}
 
-export type SizedBoxProps = {
+export interface SizedBoxProps extends BaseProps {
   width?: number;
   height?: number;
   child?: any;
-} & CyanEventHandlers;
+}
 
-export type AspectRatioProps = {
+export interface AspectRatioProps extends BaseProps {
   aspectRatio?: number;
   child?: any;
-} & CyanEventHandlers;
+}
 
-export type FlexProps = {
+export interface FlexProps extends PositionableProps, ClippableProps, DirectionalProps {
   direction?: Direction;
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
   mainAxisSize?: 'min' | 'max';
-  width?: number;
-  height?: number;
-  textDirection?: TextDirection;
-  verticalDirection?: VerticalDirection;
-  clipBehavior?: Clip;
-} & CyanEventHandlers;
+}
 
-export type WrapProps = {
+export interface WrapProps extends PositionableProps, ClippableProps, DirectionalProps {
   direction?: 'horizontal' | 'vertical';
   spacing?: number;
   runSpacing?: number;
@@ -240,21 +173,13 @@ export type WrapProps = {
   crossAxisAlignment?: CrossAxisAlignment;
   alignment?: 'start' | 'center' | 'end' | 'spaceEvenly' | 'spaceAround' | 'spaceBetween';
   runAlignment?: 'start' | 'center' | 'end' | 'spaceEvenly' | 'spaceAround' | 'spaceBetween';
-  width?: number;
-  height?: number;
-  textDirection?: TextDirection;
-  verticalDirection?: VerticalDirection;
-  clipBehavior?: Clip;
-} & CyanEventHandlers;
+}
 
-export type SingleChildScrollViewProps = {
+export interface SingleChildScrollViewProps extends PositionableProps, ClippableProps {
   direction?: 'horizontal' | 'vertical';
-  width?: number;
-  height?: number;
   padding?: number;
   physics?: 'always' | 'bouncing' | 'never';
-  clipBehavior?: Clip;
-} & CyanEventHandlers;
+}
 
 export type ListenerProps = {
   onPointerDown?: (e: any) => void;
@@ -273,34 +198,34 @@ export type GestureDetectorProps = {
   onPanEnd?: (e: any) => void;
 };
 
-export type ExpandedProps = {
+export interface ExpandedProps extends BaseProps {
   flex?: number;
-} & CyanEventHandlers;
+}
 
-export type SpacerProps = {
+export interface SpacerProps extends BaseProps {
   flex?: number;
-} & CyanEventHandlers;
+}
 
-export type PositionedProps = {
+export interface PositionedProps extends BaseProps {
   top?: number;
   right?: number;
   bottom?: number;
   left?: number;
   width?: number;
   height?: number;
-} & CyanEventHandlers;
+}
 
-export type OpacityProps = {
+export interface OpacityProps extends BaseProps {
   opacity?: number;
-} & CyanEventHandlers;
+}
 
-export type ClipRRectProps = {
+export interface ClipRRectProps extends BaseProps {
   borderRadius?: number;
   width?: number;
   height?: number;
-} & CyanEventHandlers;
+}
 
-export type TransformProps = {
+export interface TransformProps extends BaseProps {
   translateX?: number;
   translateY?: number;
   scaleX?: number;
@@ -308,42 +233,40 @@ export type TransformProps = {
   rotation?: number;
   originX?: number;
   originY?: number;
-} & CyanEventHandlers;
+}
 
-export type ConstrainedBoxProps = {
+export interface ConstrainedBoxProps extends BaseProps {
   constraintMinWidth?: number;
   constraintMaxWidth?: number;
   constraintMinHeight?: number;
   constraintMaxHeight?: number;
-} & CyanEventHandlers;
+}
 
-export type FractionallySizedBoxProps = {
+export interface FractionallySizedBoxProps extends AlignableProps {
   widthFactor?: number;
   heightFactor?: number;
-  alignment?: Alignment;
-} & CyanEventHandlers;
+}
 
-export type LimitedBoxProps = {
+export interface LimitedBoxProps extends BaseProps {
   maxLimitWidth?: number;
   maxLimitHeight?: number;
-} & CyanEventHandlers;
+}
 
-export type FittedBoxProps = {
+export interface FittedBoxProps extends BaseProps {
   fit?: BoxFit;
   width?: number;
   height?: number;
-} & CyanEventHandlers;
+}
 
-export type OverflowBoxProps = {
+export interface OverflowBoxProps extends AlignableProps {
   overflowMinWidth?: number;
   overflowMaxWidth?: number;
   overflowMinHeight?: number;
   overflowMaxHeight?: number;
-  alignment?: Alignment;
   width?: number;
   height?: number;
-} & CyanEventHandlers;
+}
 
-export type OffstageProps = {
+export interface OffstageProps extends BaseProps {
   offstage?: boolean;
-} & CyanEventHandlers;
+}
