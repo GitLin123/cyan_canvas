@@ -4,10 +4,9 @@
  * 对标 Flutter 的 Tween<T>
  */
 
-export interface Animatable<T> {
-  evaluate(animation: { value: number }): T;
-  chain(parent: Animatable<number>): Animatable<T>;
-}
+import type { Animatable } from '../types/animation';
+
+export type { Animatable };
 
 /**
  * 数值 Tween

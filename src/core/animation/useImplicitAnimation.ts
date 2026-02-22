@@ -15,13 +15,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimationController } from './AnimationController';
 import { Tween } from './Tween';
-import { Curve } from './Curve';
+import type { UseImplicitAnimationOptions } from '../types/animation';
 
-export interface UseImplicitAnimationOptions {
-  duration?: number; // 毫秒，默认 300
-  curve?: Curve; // 缓动曲线
-  onComplete?: () => void; // 动画完成回调
-}
+export type { UseImplicitAnimationOptions };
 
 /**
  * 使用隐式动画的通用 Hook

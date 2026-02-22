@@ -5,15 +5,10 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { AnimationController } from './AnimationController';
-import { Curve } from './Curve';
-import { Tween, Animatable, ColorTween } from './Tween';
+import { Tween, ColorTween } from './Tween';
+import type { UseAnimationOptions } from '../types/animation';
 
-export interface UseAnimationOptions {
-  duration?: number;
-  reverseDuration?: number;
-  curve?: Curve;
-  autoStart?: boolean;
-}
+export type { UseAnimationOptions };
 
 /**
  * 使用动画的 Hook

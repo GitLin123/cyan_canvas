@@ -1,17 +1,12 @@
 /**
- * Curve - 缓动曲线接口
+ * Curve - 缓动曲线实现
  * 用于将线性的 [0, 1] 时间映射到非线性的动画值
  * 对标 Flutter 的 Curve
  */
 
-export interface Curve {
-  /**
-   * 将时间值 [0, 1] 转换为曲线值 [0, 1]
-   * @param t - 时间值，范围 [0, 1]
-   * @returns 曲线值，范围通常为 [0, 1]
-   */
-  transform(t: number): number;
-}
+import type { Curve } from '../types/animation';
+
+export type { Curve };
 
 /**
  * 线性曲线 - 无缓动

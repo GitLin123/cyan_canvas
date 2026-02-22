@@ -9,13 +9,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Animation, AnimationListener } from './Animation';
+import type { AnimationListener, AnimatedBuilderProps } from '../types/animation';
 
-export interface AnimatedBuilderProps {
-  animation: Animation;
-  builder: (animationValue: number) => React.ReactNode;
-  child?: React.ReactNode; // 可选的非动画子组件
-}
+export type { AnimatedBuilderProps };
 
 /**
  * AnimatedBuilder - 监听动画值变化并重建

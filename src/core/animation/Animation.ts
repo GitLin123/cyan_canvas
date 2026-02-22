@@ -3,15 +3,10 @@
  * 表示一个随时间变化的值，范围在 [0, 1] 之间
  */
 
-export type AnimationListener = (value: number) => void;
-export type AnimationStatusListener = (status: AnimationStatus) => void;
+import { AnimationStatus } from '../types/animation';
+import type { AnimationListener, AnimationStatusListener } from '../types/animation';
 
-export enum AnimationStatus {
-  Dismissed = 'dismissed', // 动画完成或未开始
-  Forward = 'forward', // 动画正在向前播放
-  Reverse = 'reverse', // 动画正在反向播放
-  Completed = 'completed', // 动画已完成前向播放
-}
+export { AnimationStatus, type AnimationListener, type AnimationStatusListener };
 
 export class Animation {
   private _value: number = 0;
