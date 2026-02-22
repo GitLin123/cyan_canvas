@@ -47,8 +47,10 @@ export class CenterNode extends RenderNode {
       });
 
       // 在中心放置
-      child.x = Math.max(0, (finalWidth - child.width) / 2);
-      child.y = Math.max(0, (finalHeight - child.height) / 2);
+      child.setPosition(
+        Math.max(0, (finalWidth - child.width) / 2),
+        Math.max(0, (finalHeight - child.height) / 2)
+      );
     }
 
     return { width: finalWidth, height: finalHeight };

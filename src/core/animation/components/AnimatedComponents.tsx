@@ -6,9 +6,9 @@
  */
 
 import React from 'react';
-import { Container, Rect, Stack } from '../adaptor/reconciler/components';
-import { useImplicitNumberAnimation, useImplicitColorAnimation, UseImplicitAnimationOptions } from './useImplicitAnimation';
-import { ContainerProps } from '../types/node';
+import { Container } from '../../adaptor/reconciler/components';
+import { useImplicitNumberAnimation, useImplicitColorAnimation } from '../useImplicitAnimation';
+import { ContainerProps } from '../../types/node';
 
 /**
  * AnimatedContainer - 自动动画化容器属性
@@ -23,8 +23,20 @@ import { ContainerProps } from '../types/node';
  *
  * 当这些属性发生变化时，会自动执行平滑动画
  */
-export const AnimatedContainer = React.forwardRef<
-  any,
+/**
+ * AnimatedContainer - 自动动画化容器属性
+ *
+ * 支持动画化的属性：
+ * - width
+ * - height
+ * - color (背景颜色)
+ * - borderRadius
+ * - opacity
+ * - x, y (位置)
+ *
+ * 当这些属性发生变化时，会自动执行平滑动画
+ */
+export const AnimatedContainer: React.FC<
   Omit<ContainerProps, 'width' | 'height' | 'color' | 'borderRadius' | 'opacity'> & {
     width?: number;
     height?: number;
@@ -36,7 +48,7 @@ export const AnimatedContainer = React.forwardRef<
     onAnimationComplete?: () => void;
     children?: React.ReactNode;
   }
->((props, ref) => {
+> = (props) => {
   const {
     width = 100,
     height = 100,
@@ -79,7 +91,6 @@ export const AnimatedContainer = React.forwardRef<
 
   return (
     <Container
-      ref={ref}
       width={animatedWidth}
       height={animatedHeight}
       color={animatedColor}
@@ -90,7 +101,7 @@ export const AnimatedContainer = React.forwardRef<
       {children}
     </Container>
   );
-});
+};
 
 AnimatedContainer.displayName = 'AnimatedContainer';
 
@@ -99,8 +110,12 @@ AnimatedContainer.displayName = 'AnimatedContainer';
  *
  * 当 opacity prop 发生变化时，会自动执行平滑的透明度动画
  */
-export const AnimatedOpacity = React.forwardRef<
-  any,
+/**
+ * AnimatedOpacity - 自动动画化透明度
+ *
+ * 当 opacity prop 发生变化时，会自动执行平滑的透明度动画
+ */
+export const AnimatedOpacity: React.FC<
   Omit<ContainerProps, 'opacity'> & {
     opacity?: number;
     animationDuration?: number;
@@ -108,7 +123,7 @@ export const AnimatedOpacity = React.forwardRef<
     onAnimationComplete?: () => void;
     children?: React.ReactNode;
   }
->((props, ref) => {
+> = (props) => {
   const {
     opacity = 1,
     animationDuration = 300,
@@ -125,11 +140,11 @@ export const AnimatedOpacity = React.forwardRef<
   });
 
   return (
-    <Container ref={ref} opacity={animatedOpacity} {...restProps}>
+    <Container opacity={animatedOpacity} {...restProps}>
       {children}
     </Container>
   );
-});
+};
 
 AnimatedOpacity.displayName = 'AnimatedOpacity';
 
@@ -139,8 +154,7 @@ AnimatedOpacity.displayName = 'AnimatedOpacity';
  * 当 x, y, width, height 属性发生变化时，会自动执行平滑的移动和缩放动画
  * 通常与 Stack 组件一起使用
  */
-export const AnimatedPositioned = React.forwardRef<
-  any,
+export const AnimatedPositioned: React.FC<
   Omit<ContainerProps, 'x' | 'y' | 'width' | 'height'> & {
     x?: number;
     y?: number;
@@ -151,7 +165,7 @@ export const AnimatedPositioned = React.forwardRef<
     onAnimationComplete?: () => void;
     children?: React.ReactNode;
   }
->((props, ref) => {
+> = (props) => {
   const {
     x = 0,
     y = 0,
@@ -187,7 +201,6 @@ export const AnimatedPositioned = React.forwardRef<
 
   return (
     <Container
-      ref={ref}
       x={animatedX}
       y={animatedY}
       width={animatedWidth}
@@ -197,6 +210,6 @@ export const AnimatedPositioned = React.forwardRef<
       {children}
     </Container>
   );
-});
+};
 
 AnimatedPositioned.displayName = 'AnimatedPositioned';

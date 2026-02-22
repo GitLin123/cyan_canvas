@@ -1,7 +1,6 @@
 /**
  * Animation - 基础动画值类
  * 表示一个随时间变化的值，范围在 [0, 1] 之间
- * 对标 Flutter 的 Animation<double>
  */
 
 export type AnimationListener = (value: number) => void;

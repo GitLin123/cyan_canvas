@@ -33,10 +33,10 @@ export class StackNode extends RenderNode {
 
       // 默认放在左上角
       if (child.x === undefined || child.x === null) {
-        child.x = 0;
+        child.setPosition(0, child.y);
       }
       if (child.y === undefined || child.y === null) {
-        child.y = 0;
+        child.setPosition(child.x, 0);
       }
 
       maxWidth = Math.max(maxWidth, child.x + child.width);

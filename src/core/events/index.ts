@@ -76,9 +76,15 @@ export class EventManager {
 
     const handlerName = this.handlerMap[type];
     if (handlerName) {
-      const handler = target[handlerName] as Function;
-      if (typeof handler === 'function') {
-        handler.call(target, e);
+      // 事件冒泡：从目标节点向上查找第一个有对应处理器的节点
+      let node: RenderNode | null = target;
+      while (node) {
+        const handler = node[handlerName] as Function;
+        if (typeof handler === 'function') {
+          handler.call(node, e);
+          break;
+        }
+        node = node.parent;
       }
     }
   }

@@ -9,12 +9,14 @@ import { BoxConstraints, BoxConstraintsHelper, Direction } from '../../types/con
 import { Size } from '../../types/node';
 
 export class SingleChildScrollViewNode extends RenderNode {
-  public scrollOffsetX: number = 0;
-  public scrollOffsetY: number = 0;
   public direction: Direction = Direction.vertical; // 滚动方向，默认为竖直滚动
 
   constructor() {
     super();
+    this.onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      this.scroll(e.deltaX, e.deltaY);
+    };
   }
 
   performLayout(constraints: BoxConstraints): Size {
@@ -53,9 +55,8 @@ export class SingleChildScrollViewNode extends RenderNode {
         });
       }
 
-      // 根据滚动偏移定位子项
-      child.x = -this.scrollOffsetX;
-      child.y = -this.scrollOffsetY;
+      // 子项放在原点，滚动由 base paint() 的 translate 处理
+      child.setPosition(0, 0);
     }
 
     // === 返回视口尺寸（容器自身的大小就是视口大小） ===
@@ -75,29 +76,35 @@ export class SingleChildScrollViewNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  // 重写 paint 方法以实现视口裁剪
+  // 视口始终需要裁剪，即使 scrollOffset 为 0
   paint(ctx: CanvasRenderingContext2D) {
     if (!this.visible || this.alpha <= 0) return;
-
     ctx.save();
-    // 移动到当前位置
-    ctx.translate(this._x, this._y);
-
-    // === 关键：设置裁剪区域为视口大小 ===
+    ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
     ctx.beginPath();
     ctx.rect(0, 0, this.width, this.height);
     ctx.clip();
-
-    // 绘制子项（它们的 y/x 已被 scrollOffset 制约）
+    ctx.translate(-this.scrollOffsetX, -this.scrollOffsetY);
     this.paintSelf(ctx);
-    for (const child of this.children) {
-      child.paint(ctx);
-    }
-
+    for (const child of this.children) child.paint(ctx);
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  hitTest(localX: number, localY: number): import('../../RenderNode').RenderNode | null {
+    if (!this.visible) return null;
+    if (localX < 0 || localX > this.width || localY < 0 || localY > this.height) return null;
+    for (let i = this.children.length - 1; i >= 0; i--) {
+      const child = this.children[i];
+      const target = child.hitTest(
+        localX + this.scrollOffsetX - child.x - child._offsetX,
+        localY + this.scrollOffsetY - child.y - child._offsetY
+      );
+      if (target) return target;
+    }
+    return this;
+  }
+
+  paintSelf(_ctx: CanvasRenderingContext2D): void {
     // SingleChildScrollView 容器本身不绘制任何东西
   }
 

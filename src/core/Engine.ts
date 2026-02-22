@@ -1,5 +1,6 @@
 import { Ticker } from './ticker';
 import { RenderNode } from './RenderNode';
+import { PipelineOwner } from './PipelineOwner';
 import { EventManager } from './events/index';
 import { ScrollEventManager } from './events/ScrollEventManager';
 
@@ -12,72 +13,49 @@ export interface EngineOptions {
   // 设备像素比，默认使用窗口设备像素比
   pixelRatio?: number;
 }
-export interface PerformanceMetrics {
-  fps: number;
-  layoutTime: number;
-  paintTime: number;
-  totalFrameTime: number;
-  drawCalls: number;
-  dirtyRectsCount: number;
-}
 
 export class CyanEngine {
-  // 渲染上下文
   public ctx: CanvasRenderingContext2D;
-  // 画布
   public canvas: HTMLCanvasElement;
-  // 渲染树的根节点
-  public root: RenderNode | null = null;
-  // 渲染循环
   public ticker: Ticker;
-  // 脏检查：是否需要重新渲染
-  private _isDirty: boolean = true;
-  // 移除节点级脏矩形集合，使用全量重绘
-  // 离屏渲染画布
+  public pipelineOwner: PipelineOwner;
+
+  private _root: RenderNode | null = null;
+  private _needsFrame: boolean = true;
   private _offscreenCanvas: HTMLCanvasElement;
-  // 离屏渲染上下文
   private _offscreenCtx: CanvasRenderingContext2D;
   private _frameCount: number = 0;
   private eventManager: EventManager;
   private scrollEventManager: ScrollEventManager;
 
-  private _showDashBoard: boolean = true;
-  private _metrics: PerformanceMetrics = {
-    fps: 0,
-    layoutTime: 0,
-    paintTime: 0,
-    totalFrameTime: 0,
-    drawCalls: 0,
-    dirtyRectsCount: 0,
-  };
-  private _lastStatsUpdate: number = 0;
-  private _drawCallCounter: number = 0;
+  public get root(): RenderNode | null { return this._root; }
+  public set root(node: RenderNode | null) {
+    if (this._root) this._root.detach();
+    this._root = node;
+    if (node) {
+      node.parent = null;
+      node.attach(this.pipelineOwner);
+    }
+    this._needsFrame = true;
+  }
 
   constructor(options: EngineOptions) {
     this.canvas = this._resolveCanvas(options);
     this.ctx = this.canvas.getContext('2d', { alpha: false })!;
-    // 创建离屏渲染画布
     this._offscreenCanvas = document.createElement('canvas');
     this._offscreenCtx = this._offscreenCanvas.getContext('2d')!;
 
-    this.resize();
-
-    window.addEventListener('resize', () => {
-      this.resize();
+    this.pipelineOwner = new PipelineOwner(() => {
+      this._needsFrame = true;
     });
 
-    this.ticker = new Ticker();
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
 
-    this.eventManager = new EventManager(
-      this.canvas,
-      () => this.root // 使用闭包确保总是能获取到最新的 root
-    );
+    this.ticker = new Ticker();
+    this.eventManager = new EventManager(this.canvas, () => this.root);
     this.scrollEventManager = new ScrollEventManager(
-      this.canvas,
-      () => this.root,
-      () => {
-        this._isDirty = true;
-      }
+      this.canvas, () => this.root, () => { this._needsFrame = true; }
     );
     this.setupCanvas(options.pixelRatio || window.devicePixelRatio);
     this.initPipeline();
@@ -121,35 +99,21 @@ export class CyanEngine {
     // 设置画布背景为白色
     this.canvas.style.background = '#ffffff';
 
-    // 标记根节点需要重新布局
-    if (this.root && typeof this.root.markNeedsLayout === 'function') {
-      this.root.markNeedsLayout();
-    }
-
-    // 标记全局脏，下一帧强制全屏重绘
-    this._isDirty = true;
-    // 统一由引擎层面控制脏标识，节点级脏标识已移除
+    if (this.root) this.root.markNeedsLayout();
+    this._needsFrame = true;
   }
 
   /**
    * 初始化渲染管线
    */
   private initPipeline() {
-    this.ticker.add((elapsed, delta) => {
-      // 只有在需要更新时才执行重绘（由引擎级别的 _isDirty 控制）
-      if (this.root && this._isDirty) {
-        if (!(this.root as any).engine) (this.root as any).engine = this;
+    this.ticker.add((_elapsed, delta) => {
+      if (this._root && this._needsFrame) {
         this._frameCount++;
         this.runPipeline(delta);
-        // 引擎层面在绘制后会清除 _isDirty
       }
     });
   }
-
-  /**
-   * 递归重置标记
-   */
-  // 已移除节点级脏状态重置（统一由引擎层面控制）
 
   /**
    * @param pixelRatio 设备像素比
@@ -214,61 +178,18 @@ export class CyanEngine {
     );
     this.ctx.restore();
 
-    // 清除引擎脏标识，下一次需要时由 markNeedsPaint 设置
-    this._isDirty = false;
-    // 重置统计中关于脏矩形的计数
-    this._metrics.dirtyRectsCount = 0;
-  }
-  /**
-   * 当状态改变时，通知引擎需要刷新
-   */
-  public markNeedsPaint(node: RenderNode) {
-    this._isDirty = true;
+    this._needsFrame = false;
+    this.pipelineOwner.flushPaint();
   }
 
-  private _renderDashBoard() {
-    const ctx = this.ctx;
-    const metrics = this._metrics;
-    const pr = window.devicePixelRatio || 1;
-
-    ctx.save();
-    // 关键：重置所有变换，直接使用物理像素坐标绘制 UI
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-    // 1. 绘制背景板 (放在右上角)
-    const width = 180 * pr;
-    const height = 100 * pr;
-    const padding = 10 * pr;
-    const x = this.canvas.width - width - padding;
-    const y = padding;
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(x, y, width, height);
-
-    // 2. 绘制文字
-    ctx.fillStyle = '#00ff00';
-    ctx.font = `${12 * pr}px monospace`;
-    const textX = x + 10 * pr;
-    let textY = y + 20 * pr;
-    const step = 16 * pr;
-
-    ctx.fillText(`FPS: ${this.ticker.getFPS()}`, textX, textY);
-    ctx.fillText(`Layout: ${metrics.layoutTime.toFixed(2)}ms`, textX, (textY += step));
-    ctx.fillText(`Paint: ${metrics.paintTime.toFixed(2)}ms`, textX, (textY += step));
-    ctx.fillText(`DirtyRects: ${metrics.dirtyRectsCount}`, textX, (textY += step));
-    ctx.fillText(`Resolution: ${this.canvas.width}x${this.canvas.height}`, textX, (textY += step));
-
-    ctx.restore();
+  /** Backward-compat: external code can still request a frame */
+  public markNeedsPaint(_node?: RenderNode) {
+    this._needsFrame = true;
   }
 
   public start() {
-    console.log('[Engine] Ticker starting...');
     this.ticker.start();
-
-    // 强制触发一次首帧检查
-    if (this.root) {
-      this.markNeedsPaint(this.root);
-    }
+    this._needsFrame = true;
   }
 
   public stop() {

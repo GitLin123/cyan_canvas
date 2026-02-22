@@ -49,8 +49,7 @@ export class SizedBoxNode extends RenderNode {
       child.layout(childConstraints);
 
       // 子节点放在左上角
-      child.x = 0;
-      child.y = 0;
+      child.setPosition(0, 0);
     }
 
     return { width: finalWidth, height: finalHeight };

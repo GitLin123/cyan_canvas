@@ -95,14 +95,13 @@ export class WrapNode extends RenderNode {
           if (run.length > 1) {
             const gap = (containerWidth - usedWidth + this.spacing * (run.length - 1)) / (run.length - 1);
             run.forEach((child, idx) => {
-              child.x = currentX;
+              let cy = currentY;
               if (this.crossAxisAlignment === CrossAxisAlignment.Center) {
-                child.y = Math.floor(currentY + (runHeight - child.height) / 2);
+                cy = Math.floor(currentY + (runHeight - child.height) / 2);
               } else if (this.crossAxisAlignment === CrossAxisAlignment.End) {
-                child.y = currentY + runHeight - child.height;
-              } else {
-                child.y = currentY;
+                cy = currentY + runHeight - child.height;
               }
+              child.setPosition(currentX, cy);
               currentX += child.width + gap;
             });
             return;
@@ -115,14 +114,13 @@ export class WrapNode extends RenderNode {
       }
 
       run.forEach((child) => {
-        child.x = Math.floor(currentX);
+        let cy = currentY;
         if (this.crossAxisAlignment === CrossAxisAlignment.Center) {
-          child.y = Math.floor(currentY + (runHeight - child.height) / 2);
+          cy = Math.floor(currentY + (runHeight - child.height) / 2);
         } else if (this.crossAxisAlignment === CrossAxisAlignment.End) {
-          child.y = currentY + runHeight - child.height;
-        } else {
-          child.y = currentY;
+          cy = currentY + runHeight - child.height;
         }
+        child.setPosition(Math.floor(currentX), cy);
         currentX += child.width + this.spacing;
       });
 
@@ -201,15 +199,14 @@ export class WrapNode extends RenderNode {
         case MainAxisAlignment.SpaceBetween:
           if (run.length > 1) {
             const gap = (containerHeight - usedHeight + this.spacing * (run.length - 1)) / (run.length - 1);
-            run.forEach((child, idx) => {
-              child.y = currentY;
+            run.forEach((child) => {
+              let cx = currentX;
               if (this.crossAxisAlignment === CrossAxisAlignment.Center) {
-                child.x = Math.floor(currentX + (runWidth - child.width) / 2);
+                cx = Math.floor(currentX + (runWidth - child.width) / 2);
               } else if (this.crossAxisAlignment === CrossAxisAlignment.End) {
-                child.x = currentX + runWidth - child.width;
-              } else {
-                child.x = currentX;
+                cx = currentX + runWidth - child.width;
               }
+              child.setPosition(cx, currentY);
               currentY += child.height + gap;
             });
             return;
@@ -222,14 +219,13 @@ export class WrapNode extends RenderNode {
       }
 
       run.forEach((child) => {
-        child.y = Math.floor(currentY);
+        let cx = currentX;
         if (this.crossAxisAlignment === CrossAxisAlignment.Center) {
-          child.x = Math.floor(currentX + (runWidth - child.width) / 2);
+          cx = Math.floor(currentX + (runWidth - child.width) / 2);
         } else if (this.crossAxisAlignment === CrossAxisAlignment.End) {
-          child.x = currentX + runWidth - child.width;
-        } else {
-          child.x = currentX;
+          cx = currentX + runWidth - child.width;
         }
+        child.setPosition(cx, Math.floor(currentY));
         currentY += child.height + this.spacing;
       });
 

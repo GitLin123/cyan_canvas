@@ -60,8 +60,7 @@ export class PaddingNode extends RenderNode {
       });
 
       // 在内边距区域内放置子节点
-      child.x = padding.left;
-      child.y = padding.top;
+      child.setPosition(padding.left, padding.top);
     }
 
     // === 计算 Padding 容器的最终尺寸 ===

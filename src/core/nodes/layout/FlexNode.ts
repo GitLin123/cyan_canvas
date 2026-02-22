@@ -96,25 +96,20 @@ export class FlexNode extends RenderNode {
 
     // 4) 放置子节点并处理交叉轴对齐
     this.children.forEach((child) => {
-      child.x = Math.floor(offsetX);
-
-      // 垂直对齐
+      let cy = 0;
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.End:
-          child.y = Math.floor(containerHeight - child.height);
+          cy = Math.floor(containerHeight - child.height);
           break;
         case CrossAxisAlignment.Center:
-          child.y = Math.floor((containerHeight - child.height) / 2);
+          cy = Math.floor((containerHeight - child.height) / 2);
           break;
         case CrossAxisAlignment.Stretch:
           child.height = containerHeight;
-          child.y = 0;
           break;
-        case CrossAxisAlignment.Start:
-        default:
-          child.y = 0;
       }
 
+      child.setPosition(Math.floor(offsetX), cy);
       offsetX += child.width + gap;
     });
 
@@ -193,25 +188,20 @@ export class FlexNode extends RenderNode {
 
     // 4) 放置子节点并处理交叉轴对齐
     this.children.forEach((child) => {
-      child.y = Math.floor(offsetY);
-
-      // 水平对齐
+      let cx = 0;
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.End:
-          child.x = Math.floor(containerWidth - child.width);
+          cx = Math.floor(containerWidth - child.width);
           break;
         case CrossAxisAlignment.Center:
-          child.x = Math.floor((containerWidth - child.width) / 2);
+          cx = Math.floor((containerWidth - child.width) / 2);
           break;
         case CrossAxisAlignment.Stretch:
           child.width = containerWidth;
-          child.x = 0;
           break;
-        case CrossAxisAlignment.Start:
-        default:
-          child.x = 0;
       }
 
+      child.setPosition(cx, Math.floor(offsetY));
       offsetY += child.height + gap;
     });
 

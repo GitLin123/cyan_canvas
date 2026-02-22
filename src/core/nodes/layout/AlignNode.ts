@@ -104,8 +104,7 @@ export class AlignNode extends RenderNode {
 
       // 根据对齐方式计算位置
       const offsets = this.calculateOffsets(finalWidth, finalHeight, child.width, child.height);
-      child.x = offsets.x;
-      child.y = offsets.y;
+      child.setPosition(offsets.x, offsets.y);
     }
 
     return { width: finalWidth, height: finalHeight };

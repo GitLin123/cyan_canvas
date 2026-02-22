@@ -1,7 +1,7 @@
 import ReactReconciler from 'react-reconciler';
 import { hostConfig } from './hostConfig';
 
-const CyanReconciler = ReactReconciler(hostConfig);
+const CyanReconciler = ReactReconciler(hostConfig as any);
 
 export const CyanRenderer = {
   render(element: React.ReactNode, engine: any) {
@@ -13,21 +13,29 @@ export const CyanRenderer = {
         null,
         false,
         null,
-        "",
+        '',
         (error) => console.error('React Error:', error),
         (error) => console.error('React Error:', error),
         (error) => console.error('React Error:', error),
-        () => { }
+        () => {}
       );
     }
 
     CyanReconciler.updateContainer(element, engine._reactContainer, null, () => {
       // 触发一次同步布局/绘制以保证首帧显示
       if (engine && typeof engine.markNeedsPaint === 'function') {
-        try { engine.markNeedsPaint(); } catch (e) { /* ignore */ }
+        try {
+          engine.markNeedsPaint();
+        } catch (e) {
+          /* ignore */
+        }
       }
       if (engine && typeof engine.start === 'function') {
-        try { engine.start(); } catch (e) { /* ignore */ }
+        try {
+          engine.start();
+        } catch (e) {
+          /* ignore */
+        }
       }
     });
   },
@@ -42,5 +50,5 @@ export const CyanRenderer = {
     } catch (e) {
       console.error('[CyanRenderer] unmount error', e);
     }
-  }
+  },
 };

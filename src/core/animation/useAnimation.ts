@@ -24,32 +24,33 @@ export function useAnimation(options?: UseAnimationOptions) {
   const controllerRef = useRef<AnimationController | null>(null);
   const [value, setValue] = useState(0);
 
+  // 同步创建 controller，确保首次渲染即可用
+  if (!controllerRef.current) {
+    controllerRef.current = new AnimationController({
+      duration: options?.duration,
+      reverseDuration: options?.reverseDuration,
+      curve: options?.curve,
+    });
+  }
+
   useEffect(() => {
-    if (!controllerRef.current) {
-      controllerRef.current = new AnimationController({
-        duration: options?.duration,
-        reverseDuration: options?.reverseDuration,
-        curve: options?.curve,
-      });
+    const ctrl = controllerRef.current!;
 
-      // 监听动画值变化
-      controllerRef.current.addListener((v) => {
-        setValue(v);
-      });
+    // 监听动画值变化
+    const listener = (v: number) => setValue(v);
+    ctrl.addListener(listener);
 
-      // 自动开始
-      if (options?.autoStart !== false) {
-        controllerRef.current.forward();
-      }
+    // 自动开始
+    if (options?.autoStart !== false) {
+      ctrl.forward();
     }
 
     return () => {
-      if (controllerRef.current) {
-        controllerRef.current.dispose();
-        controllerRef.current = null;
-      }
+      ctrl.removeListener(listener);
+      ctrl.dispose();
+      controllerRef.current = null;
     };
-  }, []);
+  }, [options?.duration, options?.reverseDuration, options?.curve, options?.autoStart]);
 
   return {
     controller: controllerRef.current!,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Column, Row, Rect, Text, Container, Padding, Center, Circle } from '../core/adaptor/reconciler/components';
+import { Column, Row, Rect, Text, Container, Padding, Center, SingleChildScrollView } from '../core/adaptor/reconciler/components';
 import { MainAxisAlignment, CrossAxisAlignment, TextAlign, FontWeight } from '../core/types/container';
 import {
   useNumberAnimation,
@@ -7,11 +7,7 @@ import {
   AnimationController,
   useSequenceAnimation,
   useStaggerAnimation,
-  useImplicitNumberAnimation,
   AnimatedContainer,
-  AnimatedOpacity,
-  Interval,
-  CurvedAnimation,
   Tween,
 } from '../core/animation';
 
@@ -63,91 +59,93 @@ const AnimationDemo = () => {
       </Padding>
 
       {/* 内容容器 */}
-      <Column width={w} height={h - 130} crossAxisAlignment={CrossAxisAlignment.Center}>
-        {/* 第一行：缓动曲线演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="1️⃣ 缓动曲线演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <AnimationCurveGrid w={w - 32} />
-          </Column>
-        </Padding>
+      <SingleChildScrollView width={w} height={h - 130}>
+        <Column width={w} crossAxisAlignment={CrossAxisAlignment.Center}>
+          {/* 第一行：缓动曲线演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="1️⃣ 缓动曲线演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <AnimationCurveGrid w={w - 32} />
+            </Column>
+          </Padding>
 
-        {/* 第二行：数值动画演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="2️⃣ 数值动画演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <NumberAnimationGrid w={w - 32} />
-          </Column>
-        </Padding>
+          {/* 第二行：数值动画演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="2️⃣ 数值动画演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <NumberAnimationGrid w={w - 32} />
+            </Column>
+          </Padding>
 
-        {/* 第三行：组合动画演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="3️⃣ 组合动画演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <CombinedAnimationDemo w={w - 32} />
-          </Column>
-        </Padding>
+          {/* 第三行：组合动画演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="3️⃣ 组合动画演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <CombinedAnimationDemo w={w - 32} />
+            </Column>
+          </Padding>
 
-        {/* 第四行：序列动画演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="4️⃣ 序列动画演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <SequenceAnimationDemo w={w - 32} />
-          </Column>
-        </Padding>
+          {/* 第四行：序列动画演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="4️⃣ 序列动画演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <SequenceAnimationDemo w={w - 32} />
+            </Column>
+          </Padding>
 
-        {/* 第五行：交错动画演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="5️⃣ 交错动画演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <StaggerAnimationDemo w={w - 32} />
-          </Column>
-        </Padding>
+          {/* 第五行：交错动画演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="5️⃣ 交错动画演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <StaggerAnimationDemo w={w - 32} />
+            </Column>
+          </Padding>
 
-        {/* 第六行：隐式动画演示 */}
-        <Padding padding={16}>
-          <Column width={w - 32}>
-            <Text
-              text="6️⃣ 隐式动画演示"
-              fontSize={20}
-              fontWeight={FontWeight.W600}
-              color="#333"
-            />
-            <Padding padding={8} />
-            <ImplicitAnimationDemo w={w - 32} />
-          </Column>
-        </Padding>
-      </Column>
+          {/* 第六行：隐式动画演示 */}
+          <Padding padding={16}>
+            <Column width={w - 32}>
+              <Text
+                text="6️⃣ 隐式动画演示"
+                fontSize={20}
+                fontWeight={FontWeight.W600}
+                color="#333"
+              />
+              <Padding padding={8} />
+              <ImplicitAnimationDemo w={w - 32} />
+            </Column>
+          </Padding>
+        </Column>
+      </SingleChildScrollView>
 
       {/* 底部提示 */}
       <Padding padding={16}>
@@ -303,6 +301,7 @@ const SizeAnimationCard = ({
         {/* 动画区域 */}
         <Container width={140} height={100} color="transparent">
           <Center width={140} height={100}>
+            <Rect width={animatedValue} height={animatedValue} color={color} borderRadius={4} />
           </Center>
         </Container>
         <Padding padding={8} />
@@ -409,9 +408,9 @@ export default AnimationDemo;
  * 序列动画演示 - 三个方块依次移动
  */
 const SequenceAnimationDemo = ({ w }: { w: number }) => {
-  const anim1 = new AnimationController({ duration: 300 });
-  const anim2 = new AnimationController({ duration: 300 });
-  const anim3 = new AnimationController({ duration: 300 });
+  const anim1 = React.useRef(new AnimationController({ duration: 300 })).current;
+  const anim2 = React.useRef(new AnimationController({ duration: 300 })).current;
+  const anim3 = React.useRef(new AnimationController({ duration: 300 })).current;
 
   const { play, reset } = useSequenceAnimation(
     [
@@ -476,9 +475,9 @@ const SequenceAnimationDemo = ({ w }: { w: number }) => {
  * 交错动画演示 - 多个方块错开时间开始动画
  */
 const StaggerAnimationDemo = ({ w }: { w: number }) => {
-  const anim1 = new AnimationController({ duration: 600 });
-  const anim2 = new AnimationController({ duration: 600 });
-  const anim3 = new AnimationController({ duration: 600 });
+  const anim1 = React.useRef(new AnimationController({ duration: 600 })).current;
+  const anim2 = React.useRef(new AnimationController({ duration: 600 })).current;
+  const anim3 = React.useRef(new AnimationController({ duration: 600 })).current;
 
   const { play, reset } = useStaggerAnimation(
     [

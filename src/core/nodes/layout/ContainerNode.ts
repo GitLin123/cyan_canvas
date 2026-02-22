@@ -13,11 +13,25 @@ import { Size } from '../../types/node';
 
 export class ContainerNode extends RenderNode {
   public padding: number = 0;
-  public color: string = 'transparent';
+  private _color: string = 'transparent';
   public margin: number = 0;
   public border: number = 0;
-  public borderRadius: number = 0;
+  private _borderRadius: number = 0;
   public borderColor: string = 'transparent';
+
+  public get color(): string { return this._color; }
+  public set color(v: string) {
+    if (this._color === v) return;
+    this._color = v;
+    this.markNeedsPaint();
+  }
+
+  public get borderRadius(): number { return this._borderRadius; }
+  public set borderRadius(v: number) {
+    if (this._borderRadius === v) return;
+    this._borderRadius = v;
+    this.markNeedsPaint();
+  }
 
   // 新增属性
   private _boxShadow: BoxShadow[] = [];
@@ -30,8 +44,6 @@ export class ContainerNode extends RenderNode {
   private _foregroundDecoration: BoxShadow[] = [];
   private _transform: { scaleX?: number; scaleY?: number; rotateZ?: number } = {};
   private _semanticContainer: boolean = true;
-  public scrollOffsetX: number = 0; // 水平滚动偏移
-  public scrollOffsetY: number = 0; // 垂直滚动偏移
 
   constructor() {
     super();
@@ -123,8 +135,10 @@ export class ContainerNode extends RenderNode {
     let contentHeight = 0;
     this.children.forEach((child) => {
       child.layout(innerConstraints);
-      child.x = this.margin + this.border + this.padding;
-      child.y = this.margin + this.border + this.padding;
+      child.setPosition(
+        this.margin + this.border + this.padding,
+        this.margin + this.border + this.padding
+      );
       contentWidth = Math.max(contentWidth, child.width);
       contentHeight = Math.max(contentHeight, child.height);
     });
@@ -268,7 +282,7 @@ export class ContainerNode extends RenderNode {
     if (!this.visible || this.alpha <= 0) return;
 
     ctx.save();
-    ctx.translate(this._x, this._y);
+    ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
 
     // 设置裁剪区域为 Container 的边界
     ctx.beginPath();
@@ -286,51 +300,4 @@ export class ContainerNode extends RenderNode {
     ctx.restore();
   }
 
-  /**
-   * 执行滚动操作
-   * @param deltaX 水平滚动增量（正数向右，负数向左）
-   * @param deltaY 垂直滚动增量（正数向下，负数向上）
-   */
-  public scroll(deltaX: number, deltaY: number): void {
-    // 计算实际可滚动的高度
-    let totalContentHeight = 0;
-    this.children.forEach((child) => {
-      totalContentHeight = Math.max(totalContentHeight, child.y + child.height);
-    });
-
-    // 限制向下滚动
-    const maxScrollY = Math.max(0, totalContentHeight - this.height);
-    this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY + deltaY, maxScrollY));
-
-    // 计算实际可滚动的宽度
-    let totalContentWidth = 0;
-    this.children.forEach((child) => {
-      totalContentWidth = Math.max(totalContentWidth, child.x + child.width);
-    });
-
-    // 限制向右滚动
-    const maxScrollX = Math.max(0, totalContentWidth - this.width);
-    this.scrollOffsetX = Math.max(0, Math.min(this.scrollOffsetX + deltaX, maxScrollX));
-
-    this.markNeedsPaint();
-  }
-
-  /**
-   * 获取滚动范围信息
-   */
-  public getScrollExtent(): { x: number; y: number; maxX: number; maxY: number } {
-    let totalContentHeight = 0;
-    let totalContentWidth = 0;
-    this.children.forEach((child) => {
-      totalContentHeight = Math.max(totalContentHeight, child.y + child.height);
-      totalContentWidth = Math.max(totalContentWidth, child.x + child.width);
-    });
-
-    return {
-      x: this.scrollOffsetX,
-      y: this.scrollOffsetY,
-      maxX: Math.max(0, totalContentWidth - this.width),
-      maxY: Math.max(0, totalContentHeight - this.height),
-    };
-  }
 }

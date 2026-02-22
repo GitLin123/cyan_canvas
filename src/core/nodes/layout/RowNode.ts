@@ -12,9 +12,6 @@ export class RowNode extends RenderNode {
   public mainAxisAlignment: MainAxisAlignment = MainAxisAlignment.Start;
   public crossAxisAlignment: CrossAxisAlignment = CrossAxisAlignment.Center;
   public mainAxisSize: MainAxisSize = MainAxisSize.Max;
-  public scrollOffsetX: number = 0; // 水平滚动偏移
-  public scrollOffsetY: number = 0; // 垂直滚动偏移（以防万一）
-
   constructor() {
     super();
   }
@@ -128,30 +125,25 @@ export class RowNode extends RenderNode {
 
     // === 第7步: 处理交叉轴对齐（高度） ===
     this.children.forEach((child) => {
-      // 垂直对齐
+      let cy = 0;
       switch (this.crossAxisAlignment) {
         case CrossAxisAlignment.Center:
-          child.y = Math.max(0, Math.floor((containerHeight - child.height) / 2));
+          cy = Math.max(0, Math.floor((containerHeight - child.height) / 2));
           break;
         case CrossAxisAlignment.End:
-          child.y = Math.max(0, Math.floor(containerHeight - child.height));
+          cy = Math.max(0, Math.floor(containerHeight - child.height));
           break;
         case CrossAxisAlignment.Stretch:
-          // 拉伸：重新布局为容器高
           child.layout({
             minWidth: child.width,
             maxWidth: child.width,
             minHeight: containerHeight,
             maxHeight: containerHeight,
           });
-          child.y = 0;
           break;
-        case CrossAxisAlignment.Start:
-        default:
-          child.y = 0;
       }
 
-      child.x = Math.floor(offsetX);
+      child.setPosition(Math.floor(offsetX), cy);
       offsetX += child.width + gap;
     });
 
@@ -168,74 +160,4 @@ export class RowNode extends RenderNode {
     // Row 本身不绘制内容
   }
 
-  // 重写 paint 以实现边界裁剪和滚动
-  paint(ctx: CanvasRenderingContext2D) {
-    if (!this.visible || this.alpha <= 0) return;
-
-    ctx.save();
-    ctx.translate(this._x, this._y);
-
-    // === 设置裁剪区域为 Row 的边界 ===
-    ctx.beginPath();
-    ctx.rect(0, 0, this.width, this.height);
-    ctx.clip();
-
-    // === 应用滚动偏移 ===
-    ctx.translate(-this.scrollOffsetX, -this.scrollOffsetY);
-
-    this.paintSelf(ctx);
-    for (const child of this.children) {
-      child.paint(ctx);
-    }
-
-    ctx.restore();
-  }
-
-  /**
-   * 执行滚动操作
-   * @param deltaX 水平滚动增量（正数向右，负数向左）
-   * @param deltaY 垂直滚动增量（正数向下，负数向上）
-   */
-  public scroll(deltaX: number, deltaY: number): void {
-    // 计算实际可滚动的宽度
-    let totalContentWidth = 0;
-    this.children.forEach((child) => {
-      totalContentWidth = Math.max(totalContentWidth, child.x + child.width);
-    });
-
-    // 限制向右滚动
-    const maxScrollX = Math.max(0, totalContentWidth - this.width);
-    this.scrollOffsetX = Math.max(0, Math.min(this.scrollOffsetX + deltaX, maxScrollX));
-
-    // 计算实际可滚动的高度
-    let totalContentHeight = 0;
-    this.children.forEach((child) => {
-      totalContentHeight = Math.max(totalContentHeight, child.y + child.height);
-    });
-
-    // 限制向下滚动
-    const maxScrollY = Math.max(0, totalContentHeight - this.height);
-    this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY + deltaY, maxScrollY));
-
-    this.markNeedsPaint();
-  }
-
-  /**
-   * 获取滚动范围信息
-   */
-  public getScrollExtent(): { x: number; y: number; maxX: number; maxY: number } {
-    let totalContentWidth = 0;
-    let totalContentHeight = 0;
-    this.children.forEach((child) => {
-      totalContentWidth = Math.max(totalContentWidth, child.x + child.width);
-      totalContentHeight = Math.max(totalContentHeight, child.y + child.height);
-    });
-
-    return {
-      x: this.scrollOffsetX,
-      y: this.scrollOffsetY,
-      maxX: Math.max(0, totalContentWidth - this.width),
-      maxY: Math.max(0, totalContentHeight - this.height),
-    };
-  }
 }

@@ -69,7 +69,8 @@ export function useImplicitAnimation<T>(
         }
       });
     } else {
-      // 更新控制器的持续时间和曲线
+      // 先停止再更新持续时间，避免 "Cannot change duration while running" 错误
+      controllerRef.current.reset();
       controllerRef.current.duration = duration;
     }
 
@@ -154,6 +155,7 @@ export function useImplicitColorAnimation(
         }
       });
     } else {
+      controllerRef.current.reset();
       controllerRef.current.duration = duration;
     }
 

@@ -4,32 +4,36 @@
  */
 
 import React from 'react';
-import { Animation } from './Animation';
-import { AnimatedBuilder } from './AnimatedBuilder';
-import { Container } from '../adaptor/reconciler/components';
-import { ContainerProps } from '../types/node';
+import { Animation } from '../Animation';
+import { AnimatedBuilder } from '../AnimatedBuilder';
+import { Container } from '../../adaptor/reconciler/components';
+import { ContainerProps } from '../../types/node';
 
 /**
  * FadeTransition - 淡入淡出转场
  *
  * 根据动画值改变透明度
  */
-export const FadeTransition = React.forwardRef<
-  any,
+/**
+ * FadeTransition - 淡入淡出转场
+ *
+ * 根据动画值改变透明度
+ */
+export const FadeTransition: React.FC<
   Omit<ContainerProps, 'opacity'> & {
     animation: Animation;
     children?: React.ReactNode;
   }
->(({ animation, children, ...props }, ref) => (
+> = ({ animation, children, ...props }) => (
   <AnimatedBuilder
     animation={animation}
     builder={(value) => (
-      <Container ref={ref} opacity={value} {...props}>
+      <Container opacity={value} {...props}>
         {children}
       </Container>
     )}
   />
-));
+);
 
 FadeTransition.displayName = 'FadeTransition';
 
@@ -39,8 +43,7 @@ FadeTransition.displayName = 'FadeTransition';
  * 根据动画值改变大小
  * begin 和 end 参数控制缩放的范围（默认 0.0 到 1.0）
  */
-export const ScaleTransition = React.forwardRef<
-  any,
+export const ScaleTransition: React.FC<
   Omit<ContainerProps, 'width' | 'height'> & {
     animation: Animation;
     begin?: number; // 起始缩放比例，默认 0
@@ -49,14 +52,13 @@ export const ScaleTransition = React.forwardRef<
     baseHeight: number; // 基础高度
     children?: React.ReactNode;
   }
->(({ animation, begin = 0, end = 1, baseWidth, baseHeight, children, ...props }, ref) => (
+> = ({ animation, begin = 0, end = 1, baseWidth, baseHeight, children, ...props }) => (
   <AnimatedBuilder
     animation={animation}
     builder={(value) => {
       const scale = begin + (end - begin) * value;
       return (
         <Container
-          ref={ref}
           width={baseWidth * scale}
           height={baseHeight * scale}
           {...props}
@@ -66,7 +68,7 @@ export const ScaleTransition = React.forwardRef<
       );
     }}
   />
-));
+);
 
 ScaleTransition.displayName = 'ScaleTransition';
 
@@ -75,38 +77,32 @@ ScaleTransition.displayName = 'ScaleTransition';
  *
  * 根据动画值改变位置
  */
-export const SlideTransition = React.forwardRef<
-  any,
+export const SlideTransition: React.FC<
   Omit<ContainerProps, 'x' | 'y'> & {
     animation: Animation;
     beginOffset?: { x: number; y: number }; // 起始偏移量，默认 { x: 0, y: 0 }
     endOffset?: { x: number; y: number }; // 结束偏移量，默认 { x: 0, y: 0 }
     children?: React.ReactNode;
   }
->(
-  (
-    {
-      animation,
-      beginOffset = { x: 0, y: 0 },
-      endOffset = { x: 0, y: 0 },
-      children,
-      ...props
-    },
-    ref
-  ) => (
-    <AnimatedBuilder
-      animation={animation}
-      builder={(value) => {
-        const x = beginOffset.x + (endOffset.x - beginOffset.x) * value;
-        const y = beginOffset.y + (endOffset.y - beginOffset.y) * value;
-        return (
-          <Container ref={ref} x={x} y={y} {...props}>
-            {children}
-          </Container>
-        );
-      }}
-    />
-  )
+> = ({
+  animation,
+  beginOffset = { x: 0, y: 0 },
+  endOffset = { x: 0, y: 0 },
+  children,
+  ...props
+}) => (
+  <AnimatedBuilder
+    animation={animation}
+    builder={(value) => {
+      const x = beginOffset.x + (endOffset.x - beginOffset.x) * value;
+      const y = beginOffset.y + (endOffset.y - beginOffset.y) * value;
+      return (
+        <Container x={x} y={y} {...props}>
+          {children}
+        </Container>
+      );
+    }}
+  />
 );
 
 SlideTransition.displayName = 'SlideTransition';
@@ -116,15 +112,14 @@ SlideTransition.displayName = 'SlideTransition';
  *
  * 根据动画值改变颜色
  */
-export const ColorTransition = React.forwardRef<
-  any,
+export const ColorTransition: React.FC<
   Omit<ContainerProps, 'color'> & {
     animation: Animation;
     beginColor: string;
     endColor: string;
     children?: React.ReactNode;
   }
->(({ animation, beginColor, endColor, children, ...props }, ref) => {
+> = ({ animation, beginColor, endColor, children, ...props }) => {
   const hexToRgb = (hex: string): [number, number, number] => {
     const h = hex.replace('#', '').substring(0, 6);
     return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)];
@@ -144,13 +139,13 @@ export const ColorTransition = React.forwardRef<
         const color = `rgb(${r}, ${g}, ${b})`;
 
         return (
-          <Container ref={ref} color={color} {...props}>
+          <Container color={color} {...props}>
             {children}
           </Container>
         );
       }}
     />
   );
-});
+};
 
 ColorTransition.displayName = 'ColorTransition';

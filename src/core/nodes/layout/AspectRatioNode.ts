@@ -51,8 +51,7 @@ export class AspectRatioNode extends RenderNode {
       });
 
       // 子节点填满 AspectRatio
-      child.x = 0;
-      child.y = 0;
+      child.setPosition(0, 0);
     }
 
     return { width: boxWidth, height: boxHeight };
