@@ -1,8 +1,8 @@
-# 🟦 Cyan Engine
+# Cyan Engine
 
 **Cyan** 是一个高性能、声明式的 Canvas UI 渲染引擎，由 React 驱动。它允许开发者使用熟悉的 React JSX 语法来构建高性能的 Canvas 应用，并提供了一套完整的布局和交互系统。Cyan Engine 专为需要复杂 UI 交互但又不希望引入 DOM 开销的应用场景而设计。
 
-## 🌟 特性
+## 核心特性
 
 Cyan Engine 提供了丰富的特性，帮助开发者构建现代化的 Canvas 应用：
 
@@ -15,7 +15,7 @@ Cyan Engine 提供了丰富的特性，帮助开发者构建现代化的 Canvas 
 - **高 DPI 支持**：自动适配 Retina 等高分辨率屏幕，确保文字和图形清晰锐利
 - **响应式设计**：支持窗口大小自适应，灵活应对不同设备屏幕
 
-## 🛠️ 技术架构
+## 技术架构
 
 Cyan Engine 的架构设计参考了现代前端框架的最佳实践，采用分层架构实现关注点分离：
 
@@ -23,49 +23,50 @@ Cyan Engine 的架构设计参考了现代前端框架的最佳实践，采用�
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    React Application                     │
+│                    React Application                    │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│               React Reconciler Layer                     │
+│               React Reconciler Layer                    │
 │         (基于 react-reconciler 的 HostConfig)            │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    RenderNode Tree                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │  Column  │  │   Row    │  │  Stack   │  ...        │
-│  └──────────┘  └──────────┘  └──────────┘             │
+│                    RenderNode Tree                      │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐               │
+│  │  Column  │  │   Row    │  │  Stack   │  ...          │
+│  └──────────┘  └──────────┘  └──────────┘               │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                     Cyan Engine                          │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐ │
-│  │  Ticker │  │ Layout  │  │  Paint  │  │ Events  │ │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘ │
+│                     Cyan Engine                         │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐     │
+│  │  Ticker │  │ Layout  │  │  Paint  │  │ Events  │     │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘     │
 └─────────────────────┬───────────────────────────────────┘
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    Canvas 2D API                          │
+│                    Canvas 2D API                        │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ### 核心模块说明
 
-| 模块           | 职责                                          | 关键文件              |
-| -------------- | --------------------------------------------- | --------------------- |
-| **Engine**     | 渲染管线调度、帧循环管理、脏检查、离屏渲染    | `Engine.ts`           |
-| **Ticker**     | 基于 requestAnimationFrame 的帧循环，FPS 统计 | `ticker.ts`           |
-| **RenderNode** | 渲染节点基类，布局计算，绘制逻辑              | `RenderNode.ts`       |
-| **Events**     | 事件委托、坐标转换、碰撞检测                  | `events/index.ts`     |
-| **Animation**  | 动画控制器、补间动画、缓动曲线                | `animation/`          |
-| **Reconciler** | 连接 React Fiber 与 Cyan 渲染树               | `adaptor/reconciler/` |
+| 模块              | 职责                                          | 关键文件              |
+| ----------------- | --------------------------------------------- | --------------------- |
+| **Engine**        | 渲染管线调度、帧循环管理、脏检查、离屏渲染    | `Engine.ts`           |
+| **Ticker**        | 基于 requestAnimationFrame 的帧循环，FPS 统计 | `ticker.ts`           |
+| **RenderNode**    | 渲染节点基类，布局计算，绘制逻辑              | `RenderNode.ts`       |
+| **PipelineOwner** | 渲染管线所有者，脏节点跟踪，批量更新          | `PipelineOwner.ts`    |
+| **Events**        | 事件委托、坐标转换、碰撞检测                  | `events/index.ts`     |
+| **Animation**     | 动画控制器、补间动画、缓动曲线                | `animation/`          |
+| **Reconciler**    | 连接 React Fiber 与 Cyan 渲染树               | `adaptor/reconciler/` |
 
-## 🚀 快速开始
+## 快速开始
 
 ### 环境要求
 
@@ -89,9 +90,9 @@ yarn add @jianlinzhou/cyan_engine
 ```tsx
 import React, { useState } from 'react';
 import { CyanEngine } from '@jianlinzhou/cyan_engine';
-import { CyanRenderer } from './core/adaptor/reconciler';
-import { Container, Column, Row, Rect, Text, Circle, Padding, Center } from './core/adaptor/reconciler/components';
-import { MainAxisAlignment, CrossAxisAlignment, FontWeight, TextAlign } from './core/types/container';
+import { CyanRenderer } from '@jianlinzhou/cyan_engine';
+import { Container, Column, Row, Rect, Text, Circle, Padding, Center } from '@jianlinzhou/cyan_engine';
+import { MainAxisAlignment, CrossAxisAlignment, FontWeight, TextAlign } from '@jianlinzhou/cyan_engine';
 
 const App = () => {
   const [windowSize, setWindowSize] = useState({
@@ -168,7 +169,7 @@ CyanRenderer.render(<App />, engine);
 Cyan Engine 提供了完善的事件系统，支持鼠标和键盘交互：
 
 ```tsx
-import { Rect } from './core/adaptor/reconciler/components';
+import { Rect } from '@jianlinzhou/cyan_engine';
 
 <Rect
   width={200}
@@ -191,13 +192,13 @@ import { Rect } from './core/adaptor/reconciler/components';
 
 ```tsx
 import React, { useState } from 'react';
-import { useNumberAnimation, Curves } from './core/animation';
-import { Rect } from './core/adaptor/reconciler/components';
+import { useAnimation, Curves } from '@jianlinzhou/cyan_engine';
+import { Rect } from '@jianlinzhou/cyan_engine';
 
 const AnimatedBox = () => {
   const [expanded, setExpanded] = useState(false);
 
-  const { controller, animatedValue } = useNumberAnimation(50, 250, {
+  const { controller, animatedValue } = useAnimation(50, 250, {
     duration: 300,
     curve: Curves.easeInOut,
     autoStart: false,
@@ -216,7 +217,7 @@ const AnimatedBox = () => {
 };
 ```
 
-## 📐 布局系统
+## 布局系统
 
 ### 约束布局（BoxConstraints）
 
@@ -233,24 +234,25 @@ interface BoxConstraints {
 
 ### 布局容器
 
-| 组件            | 说明               | 关键属性                                             |
-| --------------- | ------------------ | ---------------------------------------------------- |
-| **Column**      | 垂直布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
-| **Row**         | 水平布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
-| **Stack**       | 堆叠布局，后进先出 | `alignment`                                          |
-| **Wrap**        | 自动换行布局       | `spacing`, `runSpacing`, `alignment`                 |
-| **Flex**        | 弹性布局基础组件   | `direction`, `flex`, `mainAxisAlignment`             |
-| **Center**      | 居中布局           | -                                                    |
-| **Padding**     | 内边距             | `padding`                                            |
-| **Align**       | 对齐定位           | `alignment`                                          |
-| **SizedBox**    | 固定尺寸           | `width`, `height`                                    |
-| **AspectRatio** | 宽高比限制         | `aspectRatio`                                        |
+| 组件                      | 说明               | 关键属性                                             |
+| ------------------------- | ------------------ | ---------------------------------------------------- |
+| **Column**                | 垂直布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
+| **Row**                   | 水平布局容器       | `mainAxisAlignment`, `crossAxisAlignment`, `spacing` |
+| **Stack**                 | 堆叠布局，后进先出 | `alignment`                                          |
+| **Wrap**                  | 自动换行布局       | `spacing`, `runSpacing`, `alignment`                 |
+| **Flex**                  | 弹性布局基础组件   | `direction`, `flex`, `mainAxisAlignment`             |
+| **Center**                | 居中布局           | -                                                    |
+| **Padding**               | 内边距             | `padding`                                            |
+| **Align**                 | 对齐定位           | `alignment`                                          |
+| **SizedBox**              | 固定尺寸           | `width`, `height`                                    |
+| **AspectRatio**           | 宽高比限制         | `aspectRatio`                                        |
+| **SingleChildScrollView** | 单子元素滚动容器   | `scrollDirection`                                    |
 
 ### 对齐方式
 
 ```tsx
-import { Row, Column } from './core/adaptor/reconciler/components';
-import { MainAxisAlignment, CrossAxisAlignment } from './core/types/container';
+import { Row, Column } from '@jianlinzhou/cyan_engine';
+import { MainAxisAlignment, CrossAxisAlignment } from '@jianlinzhou/cyan_engine';
 
 // 主轴对齐 (mainAxisAlignment)
 <Row mainAxisAlignment={MainAxisAlignment.Start}>    {/* 开始对齐 */}
@@ -267,7 +269,7 @@ import { MainAxisAlignment, CrossAxisAlignment } from './core/types/container';
 <Column crossAxisAlignment={CrossAxisAlignment.Stretch}> {/* 拉伸填满 */}
 ```
 
-## 📦 组件库
+## 组件库
 
 ### 基础图形
 
@@ -287,12 +289,12 @@ import { MainAxisAlignment, CrossAxisAlignment } from './core/types/container';
 | **Container**             | 通用容器，支持背景、边框、圆角等 |
 | **SingleChildScrollView** | 单子元素滚动容器                 |
 
-## 🎨 样式属性
+## 样式属性
 
 ### 通用样式
 
 ```tsx
-import { Rect } from './core/adaptor/reconciler/components';
+import { Rect } from '@jianlinzhou/cyan_engine';
 
 <Rect
   width={200}
@@ -311,8 +313,8 @@ import { Rect } from './core/adaptor/reconciler/components';
 ### 文本样式
 
 ```tsx
-import { Text } from './core/adaptor/reconciler/components';
-import { FontWeight, TextAlign } from './core/types/container';
+import { Text } from '@jianlinzhou/cyan_engine';
+import { FontWeight, TextAlign } from '@jianlinzhou/cyan_engine';
 
 <Text
   text="Hello Cyan"
@@ -324,25 +326,96 @@ import { FontWeight, TextAlign } from './core/types/container';
 />;
 ```
 
-## ⚡ 性能优化
+## 动画系统
 
-### 性能监控
+### AnimationController
 
-Cyan Engine 内置了性能监控面板，可以实时查看关键指标：
+动画控制器用于控制动画的播放、停止、反向等操作：
 
 ```typescript
-const engine = new CyanEngine({
-  canvas: myCanvas,
-  // 启用性能面板（默认开启）
+import { AnimationController, Curves } from '@jianlinzhou/cyan_engine';
+
+const controller = new AnimationController({
+  duration: 500,
+  curve: Curves.easeInOut,
 });
 
-// 性能面板显示内容
-// - FPS: 当前帧率
-// - Layout: 布局计算耗时
-// - Paint: 绘制耗时
-// - DirtyRects: 脏矩形数量
-// - Resolution: 画布分辨率
+// 播放动画
+await controller.forward();
+
+// 反向播放
+await controller.reverse();
+
+// 重复播放
+await controller.repeat(3);
+
+// 往复动画
+await controller.oscillate(2);
+
+// 停止动画
+controller.stop();
 ```
+
+### 动画钩子
+
+Cyan Engine 提供了便捷的动画钩子：
+
+```tsx
+import { useAnimation, useImplicitAnimation } from '@jianlinzhou/cyan_engine';
+
+// 显式动画控制
+const { controller, animatedValue } = useAnimation(0, 100, {
+  duration: 300,
+  curve: Curves.easeInOut,
+});
+
+// 隐式动画（自动响应值变化）
+const animatedWidth = useImplicitAnimation(targetWidth, {
+  duration: 200,
+  curve: Curves.easeOut,
+});
+```
+
+### 缓动曲线
+
+内置丰富的缓动曲线：
+
+```tsx
+import { Curves } from '@jianlinzhou/cyan_engine';
+
+// 常用曲线
+Curves.linear; // 线性
+Curves.ease; // 缓动
+Curves.easeIn; // 缓入
+Curves.easeOut; // 缓出
+Curves.easeInOut; // 缓入缓出
+
+// 弹性曲线
+Curves.easeInBack;
+Curves.easeOutBack;
+Curves.easeInOutBack;
+
+// 弹性曲线
+Curves.elasticIn;
+Curves.elasticOut;
+Curves.elasticInOut;
+
+// 弹跳曲线
+Curves.bounceIn;
+Curves.bounceOut;
+Curves.bounceInOut;
+```
+
+## 性能优化
+
+### 渲染管线
+
+引擎采用智能的渲染管线机制：
+
+- **脏检查**：通过 `markNeedsLayout()` 和 `markNeedsPaint()` 标记需要更新的节点
+- **批量更新**：PipelineOwner 收集所有脏节点，在下一帧集中处理
+- **离屏渲染**：使用离屏 Canvas 进行绘制，最后合成到主画布
+- **局部重绘**：只绘制可见区域和发生变化的区域
 
 ### 性能最佳实践
 
@@ -355,15 +428,7 @@ const engine = new CyanEngine({
 5. **动画优化**：使用 transform 而非修改 x、y 属性进行动画
 6. **事件委托**：大量相似元素使用事件委托而非每个元素单独绑定
 
-### 脏检查策略
-
-引擎采用智能的脏检查机制来决定是否需要重新渲染：
-
-- 当 UI 状态发生变化时，通过 `markNeedsPaint()` 标记需要重绘
-- 引擎级别的 `_isDirty` 标志控制是否执行完整的渲染管线
-- 对于复杂场景，可以考虑引入局部脏矩形检查来优化性能
-
-## 🔧 进阶用法
+## 进阶用法
 
 ### 自定义渲染节点
 
@@ -396,8 +461,7 @@ Cyan Engine 可以与现有的 React 生态系统无缝集成：
 
 ```tsx
 import { useRef, useEffect } from 'react';
-import { CyanEngine } from '@jianlinzhou/cyan_engine';
-import { CyanRenderer } from '@jianlinzhou/cyan_engine';
+import { CyanEngine, CyanRenderer } from '@jianlinzhou/cyan_engine';
 
 const CanvasApp = () => {
   const engineRef = useRef<CyanEngine | null>(null);
@@ -420,7 +484,7 @@ const CanvasApp = () => {
 };
 ```
 
-## 📁 项目结构
+## 项目结构
 
 ```
 cyan_canvas/
@@ -428,6 +492,7 @@ cyan_canvas/
 │   ├── core/                    # 核心引擎代码
 │   │   ├── Engine.ts            # 渲染引擎主类
 │   │   ├── RenderNode.ts        # 渲染节点基类
+│   │   ├── PipelineOwner.ts     # 渲染管线所有者
 │   │   ├── ticker.ts            # 帧循环管理器
 │   │   ├── monitor.ts           # 性能监控
 │   │   ├── animation/           # 动画系统
@@ -435,7 +500,12 @@ cyan_canvas/
 │   │   │   ├── AnimationController.ts
 │   │   │   ├── Tween.ts
 │   │   │   ├── Curves.ts
-│   │   │   └── useAnimation.ts
+│   │   │   ├── Curve.ts
+│   │   │   ├── AnimatedBuilder.tsx
+│   │   │   ├── CompositeAnimation.ts
+│   │   │   ├── useAnimation.ts
+│   │   │   ├── useImplicitAnimation.ts
+│   │   │   └── useCompositeAnimation.ts
 │   │   ├── events/              # 事件系统
 │   │   │   ├── index.ts
 │   │   │   └── ScrollEventManager.ts
@@ -444,18 +514,31 @@ cyan_canvas/
 │   │   │   ├── TextNode.ts
 │   │   │   ├── ImageNodes.ts
 │   │   │   ├── CircleNode.ts
+│   │   │   ├── TriangleNode.ts
+│   │   │   ├── ArrowNode.ts
 │   │   │   └── layout/          # 布局容器
 │   │   │       ├── ColumnNode.ts
 │   │   │       ├── RowNode.ts
 │   │   │       ├── StackNode.ts
 │   │   │       ├── FlexNode.ts
-│   │   │       └── ...
+│   │   │       ├── WrapNode.ts
+│   │   │       ├── CenterNode.ts
+│   │   │       ├── PaddingNode.ts
+│   │   │       ├── AlignNode.ts
+│   │   │       ├── SizedBoxNode.ts
+│   │   │       ├── AspectRatioNode.ts
+│   │   │       ├── ContainerNode.ts
+│   │   │       └── SingleChildScrollViewNode.ts
 │   │   ├── types/               # TypeScript 类型定义
 │   │   │   ├── node.ts
 │   │   │   ├── container.ts
 │   │   │   └── events.ts
 │   │   └── adaptor/             # React 适配器
 │   │       ├── reconciler/      # React Reconciler 实现
+│   │       │   ├── index.ts
+│   │       │   ├── hostConfig.ts
+│   │       │   ├── nodes.ts
+│   │       │   └── components.ts
 │   │       └── flutter/         # Flutter 风格 API
 │   └── test/                    # 测试代码
 ├── dist/                        # 编译输出
@@ -464,7 +547,7 @@ cyan_canvas/
 └── vite.config.ts
 ```
 
-## 🤝 贡献指南
+## 贡献指南
 
 欢迎为 Cyan Engine 贡献代码！请遵循以下步骤：
 
@@ -494,11 +577,11 @@ npm run build
 npm test
 ```
 
-## 📄 许可证
+## 许可证
 
 本项目基于 MIT 许可证开源，详情请查看 LICENSE 文件。
 
-## 🙏 致谢
+## 致谢
 
 Cyan Engine 的设计参考了以下优秀项目：
 
