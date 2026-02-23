@@ -51,28 +51,61 @@ export class EaseInOut implements Curve {
 
 /**
  * 三次贝塞尔曲线
+ * 参数 (x1, y1, x2, y2) 定义两个控制点，P0=(0,0) P3=(1,1) 固定
+ * 与 CSS cubic-bezier() 和 Flutter Cubic 语义一致
  */
 export class Cubic implements Curve {
   constructor(
-    private a: number,
-    private b: number,
-    private c: number,
-    private d: number
+    private x1: number,
+    private y1: number,
+    private x2: number,
+    private y2: number
   ) {}
 
   transform(t: number): number {
-    return this.cubicBezier(t, this.a, this.b, this.c, this.d);
+    if (t <= 0) return 0;
+    if (t >= 1) return 1;
+    // 用牛顿法 + 二分法从 X 维度求解参数 u，使 bezierX(u) = t
+    const u = this._solveCurveX(t);
+    // 用 u 算 Y 维度的值
+    return this._bezierY(u);
   }
 
-  private cubicBezier(t: number, p0: number, p1: number, p2: number, p3: number): number {
-    // 使用牛顿法求解三次贝塞尔曲线
-    const mt = 1 - t;
-    const mt2 = mt * mt;
-    const t2 = t * t;
+  // X(u) = 3*(1-u)^2*u*x1 + 3*(1-u)*u^2*x2 + u^3
+  private _bezierX(u: number): number {
+    return ((1 - u) * (1 - u) * 3 * this.x1 + (1 - u) * 3 * this.x2 * u + u * u) * u;
+  }
 
-    // B(t) = (1-t)^3 * P0 + 3 * (1-t)^2 * t * P1 + 3 * (1-t) * t^2 * P2 + t^3 * P3
-    const result = mt2 * mt * p0 + 3 * mt2 * t * p1 + 3 * mt * t2 * p2 + t2 * t * p3;
-    return Math.max(0, Math.min(1, result));
+  // Y(u) = 3*(1-u)^2*u*y1 + 3*(1-u)*u^2*y2 + u^3
+  private _bezierY(u: number): number {
+    return ((1 - u) * (1 - u) * 3 * this.y1 + (1 - u) * 3 * this.y2 * u + u * u) * u;
+  }
+
+  // dX/du
+  private _bezierXDerivative(u: number): number {
+    return 3 * (1 - u) * (1 - u) * this.x1 + 6 * (1 - u) * u * (this.x2 - this.x1) + 3 * u * u * (1 - this.x2);
+  }
+
+  private _solveCurveX(x: number): number {
+    // 牛顿迭代
+    let u = x;
+    for (let i = 0; i < 8; i++) {
+      const dx = this._bezierX(u) - x;
+      if (Math.abs(dx) < 1e-6) return u;
+      const d = this._bezierXDerivative(u);
+      if (Math.abs(d) < 1e-6) break;
+      u -= dx / d;
+    }
+    // 牛顿法未收敛，退回二分法
+    let lo = 0, hi = 1;
+    u = x;
+    for (let i = 0; i < 20; i++) {
+      const dx = this._bezierX(u) - x;
+      if (Math.abs(dx) < 1e-6) return u;
+      if (dx > 0) hi = u; else lo = u;
+      u = (lo + hi) / 2;
+    }
+    return u;
   }
 }
 

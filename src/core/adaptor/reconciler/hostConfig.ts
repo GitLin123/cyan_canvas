@@ -95,6 +95,7 @@ export const hostConfig = {
     return 0b0000000000000000000000000000010;
   },
   detachDir() {},
+  detachDeletedInstance() {},
   requestPostPaintCallback() {},
   maySyncFlush() {},
 };

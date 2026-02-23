@@ -120,12 +120,14 @@ export class LongPressGestureRecognizer extends GestureRecognizer {
       this._down = event;
       this._accepted = false;
       this._timer = setTimeout(() => {
+        this._timer = null;
         this.resolve(event.pointer, 'accepted');
         if (this._accepted && this._down) this.onLongPress?.(this._down);
       }, 500);
     } else if (event.type === PointerEventType.move) {
       if (this._down && this._slopExceeded(event)) this.resolve(event.pointer, 'rejected');
     } else if (event.type === PointerEventType.up) {
+      this._clear();
       this.resolve(event.pointer, 'rejected');
     }
   }

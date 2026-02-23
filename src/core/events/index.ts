@@ -9,7 +9,7 @@ export class EventManager {
   public readonly gestureBinding = new GestureBinding();
   private _nextPointer = 0;
   private _touchPointerMap = new Map<number, number>();
-  private _bindingDirty = true;
+  private _abortController = new AbortController();
 
   // 缓存坐标变换参数，避免每次事件都调用 getComputedStyle
   private _cachedRect: DOMRect | null = null;
@@ -36,9 +36,6 @@ export class EventManager {
     this.init();
   }
 
-  /** 当树结构变化时调用，标记需要重新注入 binding */
-  markBindingDirty() { this._bindingDirty = true; }
-
   /** resize 后需要刷新坐标缓存 */
   invalidateCache() { this._cachedRect = null; }
 
@@ -48,33 +45,35 @@ export class EventManager {
   }
 
   private initMouseEvents() {
+    const signal = this._abortController.signal;
     this.canvas.addEventListener('mousedown', (e) => {
       const pos = this.getLogicalPos(e.clientX, e.clientY);
       const pointer = this._nextPointer++;
       this.dispatchAll(PointerEventType.down, pointer, pos, PointerDeviceKind.mouse, e, 'mousedown');
-    });
+    }, { signal });
 
     this.canvas.addEventListener('mousemove', (e) => {
       const pos = this.getLogicalPos(e.clientX, e.clientY);
       const ptrType = e.buttons > 0 ? PointerEventType.move : PointerEventType.hover;
       const pointer = e.buttons > 0 ? this._nextPointer - 1 : 0;
       this.dispatchAll(ptrType, pointer, pos, PointerDeviceKind.mouse, e, 'mousemove');
-    });
+    }, { signal });
 
     this.canvas.addEventListener('mouseup', (e) => {
       const pos = this.getLogicalPos(e.clientX, e.clientY);
       this.dispatchAll(PointerEventType.up, this._nextPointer - 1, pos, PointerDeviceKind.mouse, e, 'mouseup');
-    });
+    }, { signal });
 
-    this.canvas.addEventListener('click', (e) => this.dispatchLegacy('click', e));
+    this.canvas.addEventListener('click', (e) => this.dispatchLegacy('click', e), { signal });
     this.canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       this.dispatchLegacy('contextmenu', e);
-    });
-    this.canvas.addEventListener('wheel', (e) => this.dispatchLegacy('wheel', e), { passive: false });
+    }, { signal });
+    this.canvas.addEventListener('wheel', (e) => this.dispatchLegacy('wheel', e), { passive: false, signal });
   }
 
   private initTouchEvents() {
+    const signal = this._abortController.signal;
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       for (let i = 0; i < e.changedTouches.length; i++) {
@@ -84,7 +83,7 @@ export class EventManager {
         const pos = this.getLogicalPos(t.clientX, t.clientY);
         this.dispatchPointer(PointerEventType.down, pointer, pos, PointerDeviceKind.touch, e);
       }
-    }, { passive: false });
+    }, { passive: false, signal });
 
     this.canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
@@ -95,7 +94,7 @@ export class EventManager {
         const pos = this.getLogicalPos(t.clientX, t.clientY);
         this.dispatchPointer(PointerEventType.move, pointer, pos, PointerDeviceKind.touch, e);
       }
-    }, { passive: false });
+    }, { passive: false, signal });
 
     const onTouchEnd = (type: PointerEventType) => (e: TouchEvent) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
@@ -107,8 +106,8 @@ export class EventManager {
         this._touchPointerMap.delete(t.identifier);
       }
     };
-    this.canvas.addEventListener('touchend', onTouchEnd(PointerEventType.up));
-    this.canvas.addEventListener('touchcancel', onTouchEnd(PointerEventType.cancel));
+    this.canvas.addEventListener('touchend', onTouchEnd(PointerEventType.up), { signal });
+    this.canvas.addEventListener('touchcancel', onTouchEnd(PointerEventType.cancel), { signal });
   }
 
   /** 合并分发：新系统 + 旧系统共用一次坐标计算 */
@@ -131,16 +130,15 @@ export class EventManager {
   ) {
     const root = this.getRoot();
     if (!root) return;
-    if (this._bindingDirty) {
+    if (type === PointerEventType.down) {
       this.injectBinding(root);
-      this._bindingDirty = false;
     }
     const event = new CyanPointerEvent(type, pointer, pos.x, pos.y, deviceKind, 0, 1, 0, 0, original);
     this.gestureBinding.handlePointerEvent(event, root);
   }
 
   private injectBinding(node: RenderNode) {
-    if (node instanceof GestureDetectorNode && !node._binding) {
+    if (node instanceof GestureDetectorNode) {
       node._binding = this.gestureBinding;
     }
     for (const child of node.children) this.injectBinding(child);
@@ -218,5 +216,9 @@ export class EventManager {
       }
       this.lastHoveredNode = currentTarget;
     }
+  }
+
+  dispose() {
+    this._abortController.abort();
   }
 }

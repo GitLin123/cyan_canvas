@@ -23,19 +23,7 @@ import { ContainerProps } from '../../types/node';
  *
  * 当这些属性发生变化时，会自动执行平滑动画
  */
-/**
- * AnimatedContainer - 自动动画化容器属性
- *
- * 支持动画化的属性：
- * - width
- * - height
- * - color (背景颜色)
- * - borderRadius
- * - opacity
- * - x, y (位置)
- *
- * 当这些属性发生变化时，会自动执行平滑动画
- */
+
 export const AnimatedContainer: React.FC<
   Omit<ContainerProps, 'width' | 'height' | 'color' | 'borderRadius' | 'opacity'> & {
     width?: number;
@@ -104,12 +92,6 @@ export const AnimatedContainer: React.FC<
 };
 
 AnimatedContainer.displayName = 'AnimatedContainer';
-
-/**
- * AnimatedOpacity - 自动动画化透明度
- *
- * 当 opacity prop 发生变化时，会自动执行平滑的透明度动画
- */
 /**
  * AnimatedOpacity - 自动动画化透明度
  *

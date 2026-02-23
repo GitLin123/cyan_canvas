@@ -1,4 +1,4 @@
-import type { AABB } from './spatial/RTree';
+import type { AABB } from './types/geometry';
 
 /**
  * Chrome-style 脏矩形管理器（四叉树加速版）
@@ -11,6 +11,7 @@ import type { AABB } from './spatial/RTree';
 
 const MERGE_THRESHOLD = 64; // 两个矩形间距小于此值时合并（避免过多小矩形）
 const QUADTREE_CAPACITY = 8; // 四叉树节点容量
+const QUADTREE_MAX_DEPTH = 8; // 四叉树最大深度，防止重叠区域导致无限递归
 
 interface QuadTreeNode {
   bounds: AABB;
@@ -18,10 +19,10 @@ interface QuadTreeNode {
   children: QuadTreeNode[] | null;
 }
 
-function createQuadTree(bounds: AABB, regions: AABB[]): QuadTreeNode {
+function createQuadTree(bounds: AABB, regions: AABB[], depth: number = 0): QuadTreeNode {
   const node: QuadTreeNode = { bounds, regions: [], children: null };
 
-  if (regions.length <= QUADTREE_CAPACITY) {
+  if (regions.length <= QUADTREE_CAPACITY || depth >= QUADTREE_MAX_DEPTH) {
     node.regions = regions;
     return node;
   }
@@ -47,7 +48,7 @@ function createQuadTree(bounds: AABB, regions: AABB[]): QuadTreeNode {
     }
   }
 
-  node.children = quadrants.map((q, i) => createQuadTree(q, childRegions[i]));
+  node.children = quadrants.map((q, i) => createQuadTree(q, childRegions[i], depth + 1));
   return node;
 }
 

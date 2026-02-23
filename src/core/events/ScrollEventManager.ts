@@ -11,6 +11,9 @@ export class ScrollEventManager {
     keyboard: 15, // 键盘滚动像素数
   };
 
+  private _wheelHandler: ((e: WheelEvent) => void) | null = null;
+  private _keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
   constructor(
     private canvas: HTMLCanvasElement,
     private getRoot: () => RenderNode | null,
@@ -28,26 +31,26 @@ export class ScrollEventManager {
    * 设置滚轮事件监听器
    */
   private setupWheelListener() {
-    this.canvas.addEventListener('wheel', (e: WheelEvent) => {
+    this._wheelHandler = (e: WheelEvent) => {
       e.preventDefault();
 
       const root = this.getRoot();
       if (!root || !this.hasScrollMethod(root)) return;
 
       const scrollView = root as any;
-      // 将 deltaY 缩放到合理范围：不同浏览器的 deltaY 值差异大
       const deltaY = e.deltaY * this.scrollSensitivity.wheel;
       scrollView.scroll(0, deltaY);
 
       this.markDirty();
-    });
+    };
+    this.canvas.addEventListener('wheel', this._wheelHandler, { passive: false });
   }
 
   /**
    * 设置键盘滚动事件监听器
    */
   private setupKeyboardListener() {
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    this._keydownHandler = (e: KeyboardEvent) => {
       const root = this.getRoot();
       if (!root || !this.hasScrollMethod(root)) return;
 
@@ -86,7 +89,8 @@ export class ScrollEventManager {
       if (handled) {
         this.markDirty();
       }
-    });
+    };
+    document.addEventListener('keydown', this._keydownHandler);
   }
 
   /**
@@ -113,5 +117,16 @@ export class ScrollEventManager {
    */
   public getScrollSensitivity() {
     return { ...this.scrollSensitivity };
+  }
+
+  dispose() {
+    if (this._wheelHandler) {
+      this.canvas.removeEventListener('wheel', this._wheelHandler);
+      this._wheelHandler = null;
+    }
+    if (this._keydownHandler) {
+      document.removeEventListener('keydown', this._keydownHandler);
+      this._keydownHandler = null;
+    }
   }
 }

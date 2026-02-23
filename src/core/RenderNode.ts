@@ -4,6 +4,7 @@ import { CyanEventHandlers, CyanKeyboardEvent } from './types/events';
 import type { PipelineOwner } from './PipelineOwner';
 import { HitTestResult, HitTestEntry } from './events/HitTestResult';
 import { CyanPointerEvent } from './events/PointerEvent';
+import type { PaintingContext } from './backend/PaintingContext';
 
 export abstract class RenderNode implements CyanEventHandlers {
   public parent: RenderNode | null = null;
@@ -209,7 +210,7 @@ export abstract class RenderNode implements CyanEventHandlers {
   // --- Layout ---
 
   abstract performLayout(constraints: BoxConstraints): Size;
-  abstract paintSelf(ctx: CanvasRenderingContext2D): void;
+  abstract paintSelf(ctx: PaintingContext): void;
 
   layout(constraints: BoxConstraints) {
     if (!BoxConstraintsHelper.isValid(constraints)) {
@@ -277,7 +278,7 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   // --- Paint ---
 
-  paint(ctx: CanvasRenderingContext2D) {
+  paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
     ctx.save();
     ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
