@@ -7,6 +7,10 @@
 Cyan Engine 提供了丰富的特性，帮助开发者构建现代化的 Canvas 应用：
 
 - **React 驱动**：完整的声明式 UI 开发体验，利用 React 的组件化思想和状态管理机制
+- **双渲染后端**：
+  - Canvas 2D（默认）：兼容性好，适合大多数场景
+  - WebGL：GPU 加速渲染，文本纹理缓存（LRU 512），预分配缓冲区减少 GC
+  - 运行时可切换：`new CyanEngine({ renderer: 'canvas2d' | 'webgl' | 'auto' })`
 - **高性能渲染**：
   - Chrome 风格脏矩形优化（Dirty Rectangle）：只重绘变化区域，避免全屏刷新
   - 增量布局系统（Relayout Boundary）：局部布局变化不影响整棵树
@@ -55,7 +59,11 @@ Cyan Engine 的架构设计参考了现代前端框架的最佳实践，采用�
                       │
                       ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    Canvas 2D API                        │
+│              Rendering Backend (可切换)                   │
+│  ┌──────────────────┐    ┌──────────────────┐            │
+│  │   Canvas 2D API  │    │    WebGL API     │            │
+│  │    (默认后端)     │    │   (GPU 加速)     │            │
+│  └──────────────────┘    └──────────────────┘            │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -65,6 +73,7 @@ Cyan Engine 的架构设计参考了现代前端框架的最佳实践，采用�
 | ------------------------- | --------------------------------------------- | ------------------------- |
 | **Engine**                | 渲染管线调度、帧循环管理、脏矩形优化          | `Engine.ts`               |
 | **DirtyRegionManager**    | 脏区域收集、合并、裁剪（四叉树加速）          | `DirtyRegionManager.ts`   |
+| **RenderingBackend**      | 渲染后端抽象，Canvas 2D / WebGL 双实现        | `backend/`                |
 | **Ticker**                | 基于 requestAnimationFrame 的帧循环，FPS 统计 | `ticker.ts`               |
 | **RenderNode**            | 渲染节点基类，增量布局，绘制逻辑              | `RenderNode.ts`           |
 | **PipelineOwner**         | 渲染管线所有者，脏节点跟踪，批量更新          | `PipelineOwner.ts`        |
@@ -92,82 +101,38 @@ yarn add @jianlinzhou/cyan_engine
 
 ### 基础用法
 
-以下示例展示了如何使用 Cyan Engine 构建一个简单的交互式界面：
-
 ```tsx
 import React, { useState } from 'react';
-import { CyanEngine } from '@jianlinzhou/cyan_engine';
-import { CyanRenderer } from '@jianlinzhou/cyan_engine';
-import { Container, Column, Row, Rect, Text, Circle, Padding, Center } from '@jianlinzhou/cyan_engine';
-import { MainAxisAlignment, CrossAxisAlignment, FontWeight, TextAlign } from '@jianlinzhou/cyan_engine';
+import { CyanEngine, CyanRenderer } from '@jianlinzhou/cyan_engine';
+import { Container, Column, Row, Rect, Text, Center, Padding } from '@jianlinzhou/cyan_engine';
+import { MainAxisAlignment, FontWeight } from '@jianlinzhou/cyan_engine';
 
 const App = () => {
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
   const [counter, setCounter] = useState(0);
-  const [hovered, setHovered] = useState(false);
-
-  React.useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   return (
-    <Container width={windowSize.width} height={windowSize.height} color="#f5f5f5">
-      <Column
-        width={windowSize.width}
-        height={windowSize.height}
-        mainAxisAlignment={MainAxisAlignment.Center}
-        crossAxisAlignment={CrossAxisAlignment.Center}
-      >
-        <Padding padding={40}>
-          <Column crossAxisAlignment={CrossAxisAlignment.Center}>
-            <Text
-              text={`计数器: ${counter}`}
-              fontSize={32}
-              color="#333"
-              fontWeight={FontWeight.W700}
-              textAlign={TextAlign.Center}
-            />
+    <Container width={window.innerWidth} height={window.innerHeight} color="#f5f5f5">
+      <Column width={window.innerWidth} height={window.innerHeight}
+        mainAxisAlignment={MainAxisAlignment.Center}>
+        <Center>
+          <Column>
+            <Text text={`计数器: ${counter}`} fontSize={32} fontWeight={FontWeight.W700} color="#333" />
             <Padding padding={20}>
-              <Rect
-                width={200}
-                height={100}
-                color={hovered ? '#4CAF50' : '#2196F3'}
-                borderRadius={12}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
-                onClick={() => setCounter((c) => c + 1)}
-              />
-              <Center width={200} height={100}>
-                <Text text="点击增加" fontSize={18} color="#fff" textAlign={TextAlign.Center} />
-              </Center>
+              <Rect width={200} height={60} color="#2196F3" borderRadius={12}
+                onClick={() => setCounter(c => c + 1)}>
+                <Center width={200} height={60}>
+                  <Text text="点击增加" fontSize={18} color="#fff" />
+                </Center>
+              </Rect>
             </Padding>
-            <Row mainAxisAlignment={MainAxisAlignment.Center}>
-              <Circle radius={30} color="#FF9800" />
-              <Padding padding={10} />
-              <Circle radius={30} color="#9C27B0" />
-              <Padding padding={10} />
-              <Circle radius={30} color="#00BCD4" />
-            </Row>
           </Column>
-        </Padding>
+        </Center>
       </Column>
     </Container>
   );
 };
 
-// 启动应用
-const engine = new CyanEngine({
-  containerId: 'root',
-  width: window.innerWidth,
-  height: window.innerHeight,
-});
+const engine = new CyanEngine({ containerId: 'root' });
 CyanRenderer.render(<App />, engine);
 ```
 
@@ -248,11 +213,23 @@ interface BoxConstraints {
 | **Stack**                 | 堆叠布局，后进先出 | `alignment`                                          |
 | **Wrap**                  | 自动换行布局       | `spacing`, `runSpacing`, `alignment`                 |
 | **Flex**                  | 弹性布局基础组件   | `direction`, `flex`, `mainAxisAlignment`             |
+| **Expanded**              | 弹性填充子组件     | `flex`                                               |
+| **Spacer**                | 弹性空白           | -                                                    |
 | **Center**                | 居中布局           | -                                                    |
 | **Padding**               | 内边距             | `padding`                                            |
 | **Align**                 | 对齐定位           | `alignment`                                          |
 | **SizedBox**              | 固定尺寸           | `width`, `height`                                    |
 | **AspectRatio**           | 宽高比限制         | `aspectRatio`                                        |
+| **ConstrainedBox**        | 约束限制           | `minWidth`, `maxWidth`, `minHeight`, `maxHeight`     |
+| **FractionallySizedBox**  | 比例尺寸           | `widthFactor`, `heightFactor`                        |
+| **LimitedBox**            | 最大尺寸限制       | `maxWidth`, `maxHeight`                              |
+| **FittedBox**             | 适配缩放           | `fit`                                                |
+| **OverflowBox**           | 溢出容器           | `maxWidth`, `maxHeight`                              |
+| **Offstage**              | 隐藏/显示          | `offstage`                                           |
+| **Opacity**               | 透明度             | `opacity`                                            |
+| **ClipRRect**             | 圆角裁剪           | `borderRadius`                                       |
+| **Transform**             | 变换               | `translateX/Y`, `scaleX/Y`, `rotation`               |
+| **Positioned**            | Stack 内绝对定位   | `top`, `left`, `right`, `bottom`                     |
 | **SingleChildScrollView** | 单子元素滚动容器   | `scrollDirection`                                    |
 
 ### 对齐方式
@@ -390,27 +367,13 @@ const animatedWidth = useImplicitAnimation(targetWidth, {
 ```tsx
 import { Curves } from '@jianlinzhou/cyan_engine';
 
-// 常用曲线
-Curves.linear; // 线性
-Curves.ease; // 缓动
-Curves.easeIn; // 缓入
-Curves.easeOut; // 缓出
-Curves.easeInOut; // 缓入缓出
-
-// 弹性曲线
-Curves.easeInBack;
-Curves.easeOutBack;
-Curves.easeInOutBack;
-
-// 弹性曲线
-Curves.elasticIn;
-Curves.elasticOut;
-Curves.elasticInOut;
-
-// 弹跳曲线
-Curves.bounceIn;
-Curves.bounceOut;
-Curves.bounceInOut;
+Curves.linear        // 线性
+Curves.easeIn        // 缓入
+Curves.easeOut       // 缓出
+Curves.easeInOut     // 缓入缓出
+Curves.elasticOut    // 弹性
+Curves.bounceOut     // 弹跳
+// 更多: easeInBack, easeOutBack, elasticIn, bounceIn ...
 ```
 
 ## 性能优化
@@ -477,47 +440,33 @@ Curves.bounceInOut;
 ```typescript
 import { RenderNode } from '@jianlinzhou/cyan_engine';
 import { BoxConstraints, Size } from '@jianlinzhou/cyan_engine';
+import type { PaintingContext } from '@jianlinzhou/cyan_engine';
 
 class CustomShapeNode extends RenderNode {
-  private _shapeType: 'star' | 'heart' = 'star';
-
   performLayout(constraints: BoxConstraints): Size {
     const width = Math.min(constraints.maxWidth, this._preferredWidth ?? 100);
     const height = Math.min(constraints.maxHeight, this._preferredHeight ?? 100);
     return { width, height };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
-    // 自定义绘制逻辑
+  paintSelf(ctx: PaintingContext): void {
     ctx.fillStyle = '#FF5722';
-    // 绘制星形或其他形状
+    ctx.fillRect(0, 0, this.size.width, this.size.height);
   }
 }
 ```
 
 ### 与现有 React 生态集成
 
-Cyan Engine 可以与现有的 React 生态系统无缝集成：
-
 ```tsx
 import { useRef, useEffect } from 'react';
 import { CyanEngine, CyanRenderer } from '@jianlinzhou/cyan_engine';
 
 const CanvasApp = () => {
-  const engineRef = useRef<CyanEngine | null>(null);
-
   useEffect(() => {
-    if (!engineRef.current) {
-      engineRef.current = new CyanEngine({
-        containerId: 'canvas-root',
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    }
-
-    return () => {
-      // 清理资源
-    };
+    const engine = new CyanEngine({ containerId: 'canvas-root' });
+    CyanRenderer.render(<MyCanvasUI />, engine);
+    return () => engine.dispose();
   }, []);
 
   return <div id="canvas-root" style={{ width: '100%', height: '100vh' }} />;
@@ -533,55 +482,36 @@ cyan_canvas/
 │   │   ├── Engine.ts            # 渲染引擎主类
 │   │   ├── RenderNode.ts        # 渲染节点基类
 │   │   ├── PipelineOwner.ts     # 渲染管线所有者
+│   │   ├── DirtyRegionManager.ts # 脏区域管理
 │   │   ├── ticker.ts            # 帧循环管理器
-│   │   ├── monitor.ts           # 性能监控
+│   │   ├── backend/             # 渲染后端
+│   │   │   ├── PaintingContext.ts       # 绘制上下文抽象
+│   │   │   ├── RenderingBackend.ts      # 后端接口
+│   │   │   ├── Canvas2DPaintingContext.ts
+│   │   │   ├── Canvas2DRenderingBackend.ts
+│   │   │   └── webgl/           # WebGL 后端
+│   │   │       ├── WebGLPaintingContext.ts
+│   │   │       ├── WebGLRenderingBackend.ts
+│   │   │       ├── ShaderManager.ts
+│   │   │       └── MatrixStack.ts
+│   │   ├── types/               # 类型定义
+│   │   │   ├── geometry.ts      # Point, Size, Rect, AABB
+│   │   │   ├── enums.ts         # 所有枚举
+│   │   │   ├── constraints.ts   # BoxConstraints
+│   │   │   ├── decorations.ts   # 装饰类型
+│   │   │   ├── engine.ts        # EngineOptions
+│   │   │   ├── node.ts          # 节点 Props
+│   │   │   └── container.ts     # 聚合导出
 │   │   ├── animation/           # 动画系统
-│   │   │   ├── Animation.ts
-│   │   │   ├── AnimationController.ts
-│   │   │   ├── Tween.ts
-│   │   │   ├── Curves.ts
-│   │   │   ├── Curve.ts
-│   │   │   ├── AnimatedBuilder.tsx
-│   │   │   ├── CompositeAnimation.ts
-│   │   │   ├── useAnimation.ts
-│   │   │   ├── useImplicitAnimation.ts
-│   │   │   └── useCompositeAnimation.ts
 │   │   ├── events/              # 事件系统
-│   │   │   ├── index.ts
-│   │   │   └── ScrollEventManager.ts
 │   │   ├── nodes/               # 内置渲染节点
-│   │   │   ├── RectNode.ts
-│   │   │   ├── TextNode.ts
-│   │   │   ├── ImageNodes.ts
-│   │   │   ├── CircleNode.ts
-│   │   │   ├── TriangleNode.ts
-│   │   │   ├── ArrowNode.ts
-│   │   │   └── layout/          # 布局容器
-│   │   │       ├── ColumnNode.ts
-│   │   │       ├── RowNode.ts
-│   │   │       ├── StackNode.ts
-│   │   │       ├── FlexNode.ts
-│   │   │       ├── WrapNode.ts
-│   │   │       ├── CenterNode.ts
-│   │   │       ├── PaddingNode.ts
-│   │   │       ├── AlignNode.ts
-│   │   │       ├── SizedBoxNode.ts
-│   │   │       ├── AspectRatioNode.ts
-│   │   │       ├── ContainerNode.ts
-│   │   │       └── SingleChildScrollViewNode.ts
-│   │   ├── types/               # TypeScript 类型定义
-│   │   │   ├── node.ts
-│   │   │   ├── container.ts
-│   │   │   └── events.ts
-│   │   └── adaptor/             # React 适配器
-│   │       ├── reconciler/      # React Reconciler 实现
-│   │       │   ├── index.ts
-│   │       │   ├── hostConfig.ts
-│   │       │   ├── nodes.ts
-│   │       │   └── components.ts
-│   │       └── flutter/         # Flutter 风格 API
+│   │   │   ├── base/            # 基类
+│   │   │   └── layout/          # 布局节点 (30+)
+│   │   ├── spatial/             # R-Tree 空间索引
+│   │   └── adaptor/             # React 适配层
+│   │       └── reconciler/      # react-reconciler 实现
 │   └── test/                    # 测试代码
-├── dist/                        # 编译输出
+│       └── AllInOneDemo.tsx     # 综合测试组件
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
