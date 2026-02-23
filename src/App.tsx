@@ -1,8 +1,8 @@
 import React from 'react'
-import DirtyRectDemo from "./test/DirtyRectDemo"
+import AllInOneDemo from "./test/AllInOneDemo"
 const App = () => {
   return (
-    <DirtyRectDemo />
+    <AllInOneDemo />
   )
 }
 
