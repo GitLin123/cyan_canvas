@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class PositionedNode extends RenderNode {
   private _top?: number;
@@ -106,7 +107,7 @@ export class PositionedNode extends RenderNode {
     return { width: constraints.maxWidth, height: constraints.maxHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Positioned 本身不绘制
   }
 }

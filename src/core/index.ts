@@ -2,6 +2,14 @@
 export { CyanEngine } from './Engine';
 export { RenderNode } from './RenderNode';
 
+// 导出渲染后端
+export type { PaintingContext } from './backend/PaintingContext';
+export type { RenderingBackend } from './backend/RenderingBackend';
+export { Canvas2DPaintingContext } from './backend/Canvas2DPaintingContext';
+export { Canvas2DRenderingBackend } from './backend/Canvas2DRenderingBackend';
+export { WebGLPaintingContext } from './backend/webgl/WebGLPaintingContext';
+export { WebGLRenderingBackend } from './backend/webgl/WebGLRenderingBackend';
+
 // 导出基类（供扩展使用）
 export { ShapeNode } from './nodes/base/ShapeNode';
 export { SingleChildLayoutNode } from './nodes/base/SingleChildLayoutNode';
@@ -31,8 +39,15 @@ export { StackNode } from './nodes/layout/StackNode';
 export { WrapNode } from './nodes/layout/WrapNode';
 export { SingleChildScrollViewNode } from './nodes/layout/SingleChildScrollViewNode';
 
-// 导出类型定义
-export type { BoxConstraints } from './types/container';
+// 导出类型定义（统一从 types 导出）
+export type { Point, Size, Rect, AABB } from './types/geometry';
+export type { BoxConstraints } from './types/constraints';
+export type { EngineOptions } from './types/engine';
+export type { CyanEventHandlers } from './types/events';
+export type {
+  TextShadow, ColorFilter, BoxDecoration, BoxBorder,
+  BoxShadow, Gradient, TransformMatrix,
+} from './types/decorations';
 export {
   MainAxisAlignment,
   CrossAxisAlignment,
@@ -53,7 +68,4 @@ export {
   WrapAlignment,
   WrapCrossAlignment,
   ShapeType,
-} from './types/container';
-
-// 导出事件类型
-export type { CyanEventHandlers } from './types/events';
+} from './types/enums';

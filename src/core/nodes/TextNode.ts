@@ -10,6 +10,7 @@ import {
   TextShadow,
 } from '../types/container';
 import { RenderNode } from '../RenderNode';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class TextNode extends RenderNode {
   private _text: string = '';
@@ -237,7 +238,7 @@ export class TextNode extends RenderNode {
   /**
    * 将文本分行，考虑最大宽度
    */
-  private splitLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  private splitLines(ctx: { measureText(text: string): TextMetrics }, text: string, maxWidth: number): string[] {
     const lines: string[] = [];
     const words = text.split('\n'); // 先按换行符分割
 
@@ -265,7 +266,7 @@ export class TextNode extends RenderNode {
     return lines.length > 0 ? lines : [''];
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     if (!this._text) return;
 
     ctx.font = this.getFontString();

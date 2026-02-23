@@ -2,6 +2,7 @@ import { RenderNode } from '../RenderNode';
 import { CyanPointerEvent, PointerEventType } from '../events/PointerEvent';
 import { BoxConstraints } from '../types/container';
 import { Size } from '../types/node';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class ListenerNode extends RenderNode {
   public onPointerDown?: (e: CyanPointerEvent) => void;
@@ -28,5 +29,5 @@ export class ListenerNode extends RenderNode {
     return { width: constraints.minWidth, height: constraints.minHeight };
   }
 
-  paintSelf(): void {}
+  paintSelf(_ctx: PaintingContext): void {}
 }

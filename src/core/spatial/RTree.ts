@@ -1,8 +1,7 @@
 import type { RenderNode } from '../RenderNode';
+import type { AABB } from '../types/geometry';
 
-export interface AABB {
-  minX: number; minY: number; maxX: number; maxY: number;
-}
+export type { AABB };
 
 interface LeafEntry {
   bbox: AABB;

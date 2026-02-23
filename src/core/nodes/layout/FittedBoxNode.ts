@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxFit } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class FittedBoxNode extends RenderNode {
   private _fit: BoxFit = BoxFit.Contain;
@@ -35,7 +36,7 @@ export class FittedBoxNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paint(ctx: CanvasRenderingContext2D): void {
+  paint(ctx: PaintingContext): void {
     if (!this.visible || this.alpha <= 0) return;
     if (this.children.length === 0) return;
 
@@ -104,7 +105,7 @@ export class FittedBoxNode extends RenderNode {
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // FittedBox 本身不绘制
   }
 }

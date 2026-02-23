@@ -1,6 +1,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 /**
  * 形状节点基类
@@ -51,5 +52,5 @@ export abstract class ShapeNode extends RenderNode {
   }
 
   // 抽象方法 - 子类必须实现
-  abstract paintSelf(ctx: CanvasRenderingContext2D): void;
+  abstract paintSelf(ctx: PaintingContext): void;
 }

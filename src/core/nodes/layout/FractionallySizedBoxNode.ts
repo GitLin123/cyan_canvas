@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper, Alignment } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class FractionallySizedBoxNode extends RenderNode {
   private _widthFactor?: number;  // 0~1 的比例
@@ -43,7 +44,7 @@ export class FractionallySizedBoxNode extends RenderNode {
     return { width: selfWidth, height: selfHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // FractionallySizedBox 本身不绘制
   }
 }

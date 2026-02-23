@@ -10,6 +10,7 @@ import {
   BlendMode,
 } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class ContainerNode extends RenderNode {
   public padding: number = 0;
@@ -162,7 +163,7 @@ export class ContainerNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  private roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  private roundRectPath(ctx: PaintingContext, x: number, y: number, w: number, h: number, r: number) {
     const radius = Math.max(0, Math.min(r, Math.min(w / 2, h / 2)));
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -177,7 +178,7 @@ export class ContainerNode extends RenderNode {
    * 创建渐变对象
    */
   private createGradient(
-    ctx: CanvasRenderingContext2D,
+    ctx: PaintingContext,
     gradient: Gradient,
     x: number,
     y: number,
@@ -219,7 +220,7 @@ export class ContainerNode extends RenderNode {
   /**
    * 绘制阴影
    */
-  private drawShadow(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, shadow: BoxShadow) {
+  private drawShadow(ctx: PaintingContext, x: number, y: number, w: number, h: number, shadow: BoxShadow) {
     ctx.save();
     ctx.shadowColor = shadow.color;
     ctx.shadowOffsetX = shadow.offset.dx;
@@ -233,7 +234,7 @@ export class ContainerNode extends RenderNode {
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     ctx.globalAlpha = this._opacity;
 
     // 计算绘制区域
@@ -278,7 +279,7 @@ export class ContainerNode extends RenderNode {
   }
 
   // 重写 paint 以实现边界裁剪和滚动
-  paint(ctx: CanvasRenderingContext2D) {
+  paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
 
     ctx.save();

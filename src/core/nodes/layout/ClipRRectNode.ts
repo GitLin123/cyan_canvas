@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class ClipRRectNode extends RenderNode {
   private _borderRadius: number = 0;
@@ -38,7 +39,7 @@ export class ClipRRectNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paint(ctx: CanvasRenderingContext2D): void {
+  paint(ctx: PaintingContext): void {
     if (!this.visible || this.alpha <= 0) return;
 
     ctx.save();
@@ -71,7 +72,7 @@ export class ClipRRectNode extends RenderNode {
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // ClipRRect 本身不绘制
   }
 }

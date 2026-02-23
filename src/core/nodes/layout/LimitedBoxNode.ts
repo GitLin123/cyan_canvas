@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class LimitedBoxNode extends RenderNode {
   private _maxLimitWidth: number = Infinity;
@@ -47,7 +48,7 @@ export class LimitedBoxNode extends RenderNode {
     };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // LimitedBox 本身不绘制
   }
 }

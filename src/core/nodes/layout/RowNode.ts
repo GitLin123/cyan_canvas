@@ -7,6 +7,7 @@ import {
   MainAxisSize,
 } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class RowNode extends RenderNode {
   public mainAxisAlignment: MainAxisAlignment = MainAxisAlignment.Start;
@@ -159,7 +160,7 @@ export class RowNode extends RenderNode {
     };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Row 本身不绘制内容
   }
 

@@ -8,6 +8,7 @@ import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper, Direction } from '../../types/container';
 import { Size } from '../../types/node';
 import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class SingleChildScrollViewNode extends RenderNode {
   public direction: Direction = Direction.vertical; // 滚动方向，默认为竖直滚动
@@ -78,7 +79,7 @@ export class SingleChildScrollViewNode extends RenderNode {
   }
 
   // 视口始终需要裁剪，即使 scrollOffset 为 0
-  paint(ctx: CanvasRenderingContext2D) {
+  paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
     ctx.save();
     ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
@@ -104,7 +105,7 @@ export class SingleChildScrollViewNode extends RenderNode {
     return true;
   }
 
-  paintSelf(_ctx: CanvasRenderingContext2D): void {
+  paintSelf(_ctx: PaintingContext): void {
     // SingleChildScrollView 容器本身不绘制任何东西
   }
 

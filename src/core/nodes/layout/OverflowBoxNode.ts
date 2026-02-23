@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, Alignment } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class OverflowBoxNode extends RenderNode {
   private _overflowMinWidth?: number;
@@ -57,7 +58,7 @@ export class OverflowBoxNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // OverflowBox 本身不绘制
   }
 }

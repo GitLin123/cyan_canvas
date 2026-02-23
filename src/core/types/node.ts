@@ -8,11 +8,13 @@ import {
   FontStyle,
   TextDecoration,
   TextDirection,
-  TextShadow,
   BoxFit,
+  ImageRepeat,
+} from '../types/container';
+import type {
+  TextShadow,
   BoxShadow,
   Gradient,
-  ImageRepeat,
   ColorFilter,
 } from '../types/container';
 import {
@@ -25,17 +27,9 @@ import {
   DirectionalProps,
 } from './base-props';
 
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface Size {
-  width: number;
-  height: number;
-}
+// 几何类型从 geometry.ts 统一导出
+export { Rect, Size } from './geometry';
+export type { Point, AABB } from './geometry';
 
 // 形状节点 Props - 使用 DecorableProps 基类
 export interface TriangleProps extends DecorableProps {}

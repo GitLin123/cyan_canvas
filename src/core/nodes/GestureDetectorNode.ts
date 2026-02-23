@@ -9,6 +9,7 @@ import {
 } from '../events/GestureRecognizer';
 import { BoxConstraints } from '../types/container';
 import { Size } from '../types/node';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class GestureDetectorNode extends RenderNode {
   public onTap?: () => void;
@@ -61,5 +62,5 @@ export class GestureDetectorNode extends RenderNode {
     return { width: constraints.minWidth, height: constraints.minHeight };
   }
 
-  paintSelf(): void {}
+  paintSelf(_ctx: PaintingContext): void {}
 }

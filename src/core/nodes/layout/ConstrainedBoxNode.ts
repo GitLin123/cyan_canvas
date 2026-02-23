@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class ConstrainedBoxNode extends RenderNode {
   private _minWidth: number = 0;
@@ -47,7 +48,7 @@ export class ConstrainedBoxNode extends RenderNode {
     };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // ConstrainedBox 本身不绘制
   }
 }

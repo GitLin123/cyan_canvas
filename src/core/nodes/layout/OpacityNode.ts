@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class OpacityNode extends RenderNode {
   private _opacity: number = 1;
@@ -33,7 +34,7 @@ export class OpacityNode extends RenderNode {
     return { width: constraints.minWidth, height: constraints.minHeight };
   }
 
-  paint(ctx: CanvasRenderingContext2D): void {
+  paint(ctx: PaintingContext): void {
     if (!this.visible || this.alpha <= 0) return;
     if (this._opacity <= 0) return;
 
@@ -49,7 +50,7 @@ export class OpacityNode extends RenderNode {
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Opacity 本身不绘制
   }
 }

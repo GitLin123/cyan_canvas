@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class SpacerNode extends RenderNode {
   constructor() {
@@ -21,7 +22,7 @@ export class SpacerNode extends RenderNode {
     };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Spacer 不绘制任何内容
   }
 }

@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class SizedBoxNode extends RenderNode {
   constructor() {
@@ -55,7 +56,7 @@ export class SizedBoxNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // SizedBox 容器本身不绘制任何东西
   }
 }

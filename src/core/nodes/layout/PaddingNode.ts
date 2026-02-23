@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class PaddingNode extends RenderNode {
   public padding: number = 0;
@@ -92,7 +93,7 @@ export class PaddingNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Padding 容器本身不绘制内容
   }
 }

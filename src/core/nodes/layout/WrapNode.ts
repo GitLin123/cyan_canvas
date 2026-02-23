@@ -2,6 +2,7 @@ import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import { MainAxisAlignment, CrossAxisAlignment } from '../../types/container';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 /**
  * Wrap 容器 - 自动换行布局
@@ -238,7 +239,7 @@ export class WrapNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Wrap 容器本身不绘制任何东西
   }
 }

@@ -5,6 +5,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class StackNode extends RenderNode {
   constructor() {
@@ -56,7 +57,7 @@ export class StackNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Stack 容器本身不绘制任何东西
   }
 }

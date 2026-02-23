@@ -1,6 +1,7 @@
 import { RenderNode } from '../RenderNode';
 import { BoxConstraints, BoxFit, ImageRepeat, Alignment, BlendMode, ColorFilter } from '../types/container';
 import { Size } from '../types/node';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class ImageNode extends RenderNode {
   private _src: string = '';
@@ -200,7 +201,7 @@ export class ImageNode extends RenderNode {
     return { width, height };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     ctx.globalAlpha = this._opacity;
 
     if (this._isLoaded && this._image) {

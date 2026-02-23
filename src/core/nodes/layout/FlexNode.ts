@@ -9,6 +9,7 @@ import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, Direction } from '../../types/container';
 import { Size } from '../../types/node';
 import { MainAxisAlignment, CrossAxisAlignment } from '../../types/container';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class FlexNode extends RenderNode {
   public direction: Direction = Direction.horizontal; // 主轴方向
@@ -211,7 +212,7 @@ export class FlexNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Flex 容器本身不绘制任何东西
   }
 }

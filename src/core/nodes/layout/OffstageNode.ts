@@ -6,6 +6,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class OffstageNode extends RenderNode {
   private _offstage: boolean = true;
@@ -32,7 +33,7 @@ export class OffstageNode extends RenderNode {
     return { width: constraints.minWidth, height: constraints.minHeight };
   }
 
-  paint(ctx: CanvasRenderingContext2D): void {
+  paint(ctx: PaintingContext): void {
     if (this._offstage) return; // 隐藏时不绘制
 
     if (!this.visible || this.alpha <= 0) return;
@@ -48,7 +49,7 @@ export class OffstageNode extends RenderNode {
     ctx.restore();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Offstage 本身不绘制
   }
 }

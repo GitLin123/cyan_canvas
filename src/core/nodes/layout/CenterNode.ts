@@ -7,6 +7,7 @@
 import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class CenterNode extends SingleChildLayoutNode {
   performLayout(constraints: BoxConstraints): Size {
@@ -37,7 +38,7 @@ export class CenterNode extends SingleChildLayoutNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(_ctx: CanvasRenderingContext2D): void {
+  paintSelf(_ctx: PaintingContext): void {
     // Center 容器本身不绘制内容
   }
 }

@@ -1,4 +1,5 @@
 import { ShapeNode } from './base/ShapeNode';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class ArrowNode extends ShapeNode {
   // 覆盖默认尺寸
@@ -9,7 +10,7 @@ export class ArrowNode extends ShapeNode {
     return 60;
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     const w = this.width;
     const h = this.height;
     const headW = Math.min(w * 0.35, h * 1.2);

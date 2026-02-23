@@ -7,6 +7,7 @@
 import { RenderNode } from '../../RenderNode';
 import { BoxConstraints, BoxConstraintsHelper, Alignment } from '../../types/container';
 import { Size } from '../../types/node';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export class AlignNode extends RenderNode {
   public alignment: Alignment = Alignment.Center;
@@ -110,7 +111,7 @@ export class AlignNode extends RenderNode {
     return { width: finalWidth, height: finalHeight };
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     // Align 容器本身不绘制内容
   }
 }

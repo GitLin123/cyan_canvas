@@ -1,6 +1,7 @@
 import { ShapeNode } from './base/ShapeNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../types/container';
 import { Size } from '../types/node';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class RectNode extends ShapeNode {
   private _borderRadius: number = 0;
@@ -48,7 +49,7 @@ export class RectNode extends ShapeNode {
     return { width: prefWidth, height: prefHeight };
   }
 
-  private roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  private roundRectPath(ctx: PaintingContext, x: number, y: number, w: number, h: number, r: number) {
     const radius = Math.max(0, Math.min(r, Math.min(w / 2, h / 2)));
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -59,7 +60,7 @@ export class RectNode extends ShapeNode {
     ctx.closePath();
   }
 
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     ctx.save();
     ctx.globalAlpha *= this._opacity;
     const w = this.width;

@@ -1,7 +1,8 @@
 import { ShapeNode } from './base/ShapeNode';
+import type { PaintingContext } from '../backend/PaintingContext';
 
 export class CircleNode extends ShapeNode {
-  paintSelf(ctx: CanvasRenderingContext2D): void {
+  paintSelf(ctx: PaintingContext): void {
     const w = this.width;
     const h = this.height;
     const r = Math.min(w, h) / 2;
