@@ -13,6 +13,7 @@ import {
  */
 export interface BaseProps extends CyanEventHandlers {
   // 事件处理器通过 CyanEventHandlers 继承
+  focusable?: boolean;
 }
 
 /**

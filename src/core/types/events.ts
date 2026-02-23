@@ -6,7 +6,9 @@ export type CyanInputEventType =
   | 'mouseenter'
   | 'mouseleave'
   | 'wheel'
-  | 'contextmenu';
+  | 'contextmenu'
+  | 'keydown'
+  | 'keyup';
 
 export interface CyanEventHandlers {
   onClick?: (e: MouseEvent) => void;
@@ -17,6 +19,10 @@ export interface CyanEventHandlers {
   onMouseLeave?: (e: MouseEvent) => void;
   onWheel?: (e: WheelEvent) => void;
   onContextMenu?: (e: MouseEvent) => void;
+  onKeyDown?: (e: CyanKeyboardEvent) => void;
+  onKeyUp?: (e: CyanKeyboardEvent) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export type CyanKeyboardEvent = {
@@ -24,4 +30,7 @@ export type CyanKeyboardEvent = {
   code: string;
   ctrlKey: boolean;
   shiftKey: boolean;
+  altKey: boolean;
+  metaKey: boolean;
+  repeat: boolean;
 };

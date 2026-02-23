@@ -34,7 +34,7 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
 )
 
 // ==================== Tab 按钮 ====================
-const TABS = ['布局', '节点', '动画', '手势', '样式'] as const
+const TABS = ['布局', '节点', '动画', '事件', '样式'] as const
 type TabName = typeof TABS[number]
 
 // ==================== 布局 Tab ====================
@@ -388,6 +388,31 @@ const GestureTab = () => {
         </Column>
       </Padding>
 
+      {/* Keyboard */}
+      <Padding padding={12}>
+        <Column width={CARD_W}>
+          <Text text="Keyboard 键盘事件 (点击下方区域获取焦点后按键)" fontSize={14} fontWeight={FontWeight.W600} color="#333" />
+          <Padding padding={6}>
+            <Container
+              width={CARD_W} height={80} color="#37474F" borderRadius={8}
+              focusable={true}
+              onKeyDown={(e: any) => addLog(`KeyDown: ${e.key} (${e.code})${e.ctrlKey ? ' +Ctrl' : ''}${e.shiftKey ? ' +Shift' : ''}${e.altKey ? ' +Alt' : ''}`)}
+              onKeyUp={(e: any) => addLog(`KeyUp: ${e.key}`)}
+              onFocus={() => addLog('Focus 获得焦点')}
+              onBlur={() => addLog('Blur 失去焦点')}
+            >
+              <Center>
+                <Column crossAxisAlignment={CrossAxisAlignment.Center}>
+                  <Text text="点击此区域，然后按任意键" fontSize={14} color="#B0BEC5" fontWeight={FontWeight.W600} />
+                  <Padding padding={4} />
+                  <Text text="支持 Ctrl/Shift/Alt 组合键检测" fontSize={11} color="#78909C" />
+                </Column>
+              </Center>
+            </Container>
+          </Padding>
+        </Column>
+      </Padding>
+
       {/* 日志 */}
       <Padding padding={12}>
         <Container width={CARD_W} color="#263238" padding={12} borderRadius={8}>
@@ -470,7 +495,7 @@ const AllInOneDemo = () => {
       case '布局': return <LayoutTab />
       case '节点': return <NodesTab />
       case '动画': return <AnimationTab />
-      case '手势': return <GestureTab />
+      case '事件': return <GestureTab />
       case '样式': return <StyleTab />
     }
   }

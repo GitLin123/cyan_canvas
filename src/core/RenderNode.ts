@@ -53,6 +53,8 @@ export abstract class RenderNode implements CyanEventHandlers {
   public onContextMenu?: (e: MouseEvent) => void;
   public onKeyDown?: (e: CyanKeyboardEvent) => void;
   public onKeyUp?: (e: CyanKeyboardEvent) => void;
+  public onFocus?: () => void;
+  public onBlur?: () => void;
   public focusable: boolean = false;
   public _isMouseOver: boolean = false;
 

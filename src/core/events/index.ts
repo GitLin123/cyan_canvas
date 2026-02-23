@@ -3,6 +3,7 @@ import { CyanPointerEvent, PointerEventType, PointerDeviceKind } from './Pointer
 import { GestureBinding } from './GestureBinding';
 import { GestureDetectorNode } from '../nodes/GestureDetectorNode';
 import type { SpatialIndex } from '../spatial/SpatialIndex';
+import type { CyanKeyboardEvent } from '../types/events';
 
 export class EventManager {
   private lastHoveredNode: RenderNode | null = null;
@@ -10,6 +11,9 @@ export class EventManager {
   private _nextPointer = 0;
   private _touchPointerMap = new Map<number, number>();
   private _abortController = new AbortController();
+
+  /** 当前拥有键盘焦点的节点 */
+  private _focusedNode: RenderNode | null = null;
 
   // 缓存坐标变换参数，避免每次事件都调用 getComputedStyle
   private _cachedRect: DOMRect | null = null;
@@ -42,6 +46,7 @@ export class EventManager {
   private init() {
     this.initMouseEvents();
     this.initTouchEvents();
+    this.initKeyboardEvents();
   }
 
   private initMouseEvents() {
@@ -217,6 +222,89 @@ export class EventManager {
       this.lastHoveredNode = currentTarget;
     }
   }
+
+  private initKeyboardEvents() {
+    const signal = this._abortController.signal;
+
+    // 确保 canvas 可聚焦
+    if (!this.canvas.hasAttribute('tabindex')) {
+      this.canvas.setAttribute('tabindex', '0');
+    }
+    this.canvas.style.outline = 'none';
+
+    // 点击 canvas 时自动聚焦，并将焦点设置到被点击的 focusable 节点
+    this.canvas.addEventListener('mousedown', (e) => {
+      this.canvas.focus();
+      const pos = this.getLogicalPos(e.clientX, e.clientY);
+      const target = this.spatialIndex
+        ? this.spatialIndex.hitTestFirst(pos.x, pos.y)
+        : this.getRoot()?.hitTestLegacy(pos.x - (this.getRoot()?.x ?? 0), pos.y - (this.getRoot()?.y ?? 0)) ?? null;
+      this.setFocus(this.findFocusable(target));
+    }, { signal });
+
+    this.canvas.addEventListener('keydown', (e) => {
+      const cyanEvent = this.toCyanKeyboardEvent(e);
+      this.dispatchKeyboardEvent('onKeyDown', cyanEvent);
+    }, { signal });
+
+    this.canvas.addEventListener('keyup', (e) => {
+      const cyanEvent = this.toCyanKeyboardEvent(e);
+      this.dispatchKeyboardEvent('onKeyUp', cyanEvent);
+    }, { signal });
+  }
+
+  private toCyanKeyboardEvent(e: KeyboardEvent): CyanKeyboardEvent {
+    return {
+      key: e.key,
+      code: e.code,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      metaKey: e.metaKey,
+      repeat: e.repeat,
+    };
+  }
+
+  private dispatchKeyboardEvent(handlerName: 'onKeyDown' | 'onKeyUp', event: CyanKeyboardEvent) {
+    // 优先分发给焦点节点，沿父链冒泡
+    let node: RenderNode | null = this._focusedNode;
+    while (node) {
+      const handler = node[handlerName];
+      if (typeof handler === 'function') {
+        handler(event);
+        return;
+      }
+      node = node.parent;
+    }
+    // 无焦点节点时分发给根节点
+    const root = this.getRoot();
+    if (root) {
+      const handler = root[handlerName];
+      if (typeof handler === 'function') {
+        handler(event);
+      }
+    }
+  }
+
+  /** 沿父链查找最近的 focusable 节点 */
+  private findFocusable(node: RenderNode | null): RenderNode | null {
+    while (node) {
+      if (node.focusable) return node;
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /** 设置焦点节点 */
+  setFocus(node: RenderNode | null) {
+    if (this._focusedNode === node) return;
+    const prev = this._focusedNode;
+    this._focusedNode = node;
+    if (prev?.onBlur) prev.onBlur();
+    if (node?.onFocus) node.onFocus();
+  }
+
+  get focusedNode() { return this._focusedNode; }
 
   dispose() {
     this._abortController.abort();
