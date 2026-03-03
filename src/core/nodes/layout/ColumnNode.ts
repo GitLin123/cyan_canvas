@@ -22,7 +22,6 @@ export class ColumnNode extends RenderNode {
       return { width: 100, height: 100 };
     }
 
-    // === 第1步: 确定容器宽度 ===
     // 优先使用 preferredWidth，否则从约束确定
     const containerWidth =
       this._preferredWidth ??
@@ -30,7 +29,7 @@ export class ColumnNode extends RenderNode {
     // 子项布局用的交叉轴约束：无界时传原始约束，让子项报告自然宽度
     const childMaxWidth = containerWidth > 0 ? containerWidth : constraints.maxWidth;
 
-    // === 第2步: 布局所有非 flex 子項（用無界高度約束獲取自然高度）===
+    // 布局所有非 flex 子项，统计已用高度和最大子项宽度
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
     const nonFlexChildren: { child: RenderNode; height: number }[] = [];
     let usedHeight = 0;
@@ -52,7 +51,6 @@ export class ColumnNode extends RenderNode {
       }
     });
 
-    // === 第3步: 确定 flex 分配空间 ===
     // 优先使用 preferredHeight，否则从约束确定
     const containerHeight =
       this._preferredHeight ??
@@ -64,7 +62,7 @@ export class ColumnNode extends RenderNode {
 
     const flexUnit = totalFlexNodes > 0 ? availableHeight / totalFlexNodes : 0;
 
-    // === 第4步: 布局 flex 子项 ===
+    // 布局 flex 子项
     this.children.forEach((child) => {
       if (child.flex) {
         const flexAlloc = Math.max(0, Math.floor((child.flex || 0) * flexUnit));
@@ -79,14 +77,14 @@ export class ColumnNode extends RenderNode {
       }
     });
 
-    // === 第5步: 确定容器最终高度 ===
+    // 确定容器最终高度
     let finalHeight = usedHeight;
     if (this.mainAxisSize === MainAxisSize.Max && containerHeight > 0) {
       finalHeight = containerHeight;
     }
     finalHeight = Math.max(constraints.minHeight, Math.min(constraints.maxHeight, finalHeight));
 
-    // === 第6步: 放置子项（根据对齐模式计算位置） ===
+    // 放置子项（根据对齐模式计算位置）
     const childCount = this.children.length;
     let offsetY = 0;
     let gap = 0;
@@ -126,7 +124,7 @@ export class ColumnNode extends RenderNode {
         offsetY = 0;
     }
 
-    // === 第7步: 处理交叉轴对齐（宽度） ===
+    // 处理交叉轴对齐（宽度）
     const crossWidth = containerWidth > 0 ? containerWidth : maxChildWidth;
     this.children.forEach((child) => {
       let cx = 0;
@@ -151,7 +149,7 @@ export class ColumnNode extends RenderNode {
       offsetY += child.height + gap;
     });
 
-    // === 第8步: 返回容器最终尺寸 ===
+    // 返回容器最终尺寸
     // 宽度：优先使用 preferredWidth，否则自适应子项宽度
     const resultWidth = this._preferredWidth ?? Math.max(maxChildWidth, constraints.minWidth);
     return {

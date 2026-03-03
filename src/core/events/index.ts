@@ -6,8 +6,11 @@ import type { SpatialIndex } from '../spatial/SpatialIndex';
 import type { CyanKeyboardEvent } from '../types/events';
 
 export class EventManager {
+  // 记录当前 hover 状态的节点
   private lastHoveredNode: RenderNode | null = null;
+  // 手势竞技场相关
   public readonly gestureBinding = new GestureBinding();
+  // pointer 生成器和 touch identifier 映射
   private _nextPointer = 0;
   private _touchPointerMap = new Map<number, number>();
   private _abortController = new AbortController();
@@ -15,33 +18,38 @@ export class EventManager {
   /** 当前拥有键盘焦点的节点 */
   private _focusedNode: RenderNode | null = null;
 
-  // 缓存坐标变换参数，避免每次事件都调用 getComputedStyle
+  // 缓存坐标变换参数
   private _cachedRect: DOMRect | null = null;
   private _cachedScaleX = 1;
   private _cachedScaleY = 1;
   private _cachedOffsetX = 0;
   private _cachedOffsetY = 0;
 
+  // 旧事件类型到 RenderNode handler 的映射
   private readonly handlerMap: Record<string, keyof RenderNode> = {
-    'click': 'onClick',
-    'mousedown': 'onMouseDown',
-    'mouseup': 'onMouseUp',
-    'mousemove': 'onMouseMove',
-    'wheel': 'onWheel',
-    'contextmenu': 'onContextMenu'
+    click: 'onClick',
+    mousedown: 'onMouseDown',
+    mouseup: 'onMouseUp',
+    mousemove: 'onMouseMove',
+    wheel: 'onWheel',
+    contextmenu: 'onContextMenu',
   };
 
   constructor(
     private canvas: HTMLCanvasElement,
+    // 获取根节点的函数
     private getRoot: () => RenderNode | null,
-    private spatialIndex: SpatialIndex | null = null,
+    // 空间索引，用于优化点击判断
+    private spatialIndex: SpatialIndex | null = null
   ) {
     this.gestureBinding.spatialIndex = spatialIndex;
     this.init();
   }
 
   /** resize 后需要刷新坐标缓存 */
-  invalidateCache() { this._cachedRect = null; }
+  invalidateCache() {
+    this._cachedRect = null;
+  }
 
   private init() {
     this.initMouseEvents();
@@ -51,55 +59,79 @@ export class EventManager {
 
   private initMouseEvents() {
     const signal = this._abortController.signal;
-    this.canvas.addEventListener('mousedown', (e) => {
-      const pos = this.getLogicalPos(e.clientX, e.clientY);
-      const pointer = this._nextPointer++;
-      this.dispatchAll(PointerEventType.down, pointer, pos, PointerDeviceKind.mouse, e, 'mousedown');
-    }, { signal });
+    this.canvas.addEventListener(
+      'mousedown',
+      (e) => {
+        const pos = this.getLogicalPos(e.clientX, e.clientY);
+        const pointer = this._nextPointer++;
+        this.dispatchAll(PointerEventType.down, pointer, pos, PointerDeviceKind.mouse, e, 'mousedown');
+      },
+      { signal }
+    );
 
-    this.canvas.addEventListener('mousemove', (e) => {
-      const pos = this.getLogicalPos(e.clientX, e.clientY);
-      const ptrType = e.buttons > 0 ? PointerEventType.move : PointerEventType.hover;
-      const pointer = e.buttons > 0 ? this._nextPointer - 1 : 0;
-      this.dispatchAll(ptrType, pointer, pos, PointerDeviceKind.mouse, e, 'mousemove');
-    }, { signal });
+    this.canvas.addEventListener(
+      'mousemove',
+      (e) => {
+        const pos = this.getLogicalPos(e.clientX, e.clientY);
+        const ptrType = e.buttons > 0 ? PointerEventType.move : PointerEventType.hover;
+        const pointer = e.buttons > 0 ? this._nextPointer - 1 : 0;
+        this.dispatchAll(ptrType, pointer, pos, PointerDeviceKind.mouse, e, 'mousemove');
+      },
+      { signal }
+    );
 
-    this.canvas.addEventListener('mouseup', (e) => {
-      const pos = this.getLogicalPos(e.clientX, e.clientY);
-      this.dispatchAll(PointerEventType.up, this._nextPointer - 1, pos, PointerDeviceKind.mouse, e, 'mouseup');
-    }, { signal });
+    this.canvas.addEventListener(
+      'mouseup',
+      (e) => {
+        const pos = this.getLogicalPos(e.clientX, e.clientY);
+        this.dispatchAll(PointerEventType.up, this._nextPointer - 1, pos, PointerDeviceKind.mouse, e, 'mouseup');
+      },
+      { signal }
+    );
 
     this.canvas.addEventListener('click', (e) => this.dispatchLegacy('click', e), { signal });
-    this.canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      this.dispatchLegacy('contextmenu', e);
-    }, { signal });
+    this.canvas.addEventListener(
+      'contextmenu',
+      (e) => {
+        e.preventDefault();
+        this.dispatchLegacy('contextmenu', e);
+      },
+      { signal }
+    );
     this.canvas.addEventListener('wheel', (e) => this.dispatchLegacy('wheel', e), { passive: false, signal });
   }
 
   private initTouchEvents() {
     const signal = this._abortController.signal;
-    this.canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        const pointer = this._nextPointer++;
-        this._touchPointerMap.set(t.identifier, pointer);
-        const pos = this.getLogicalPos(t.clientX, t.clientY);
-        this.dispatchPointer(PointerEventType.down, pointer, pos, PointerDeviceKind.touch, e);
-      }
-    }, { passive: false, signal });
+    this.canvas.addEventListener(
+      'touchstart',
+      (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          const pointer = this._nextPointer++;
+          this._touchPointerMap.set(t.identifier, pointer);
+          const pos = this.getLogicalPos(t.clientX, t.clientY);
+          this.dispatchPointer(PointerEventType.down, pointer, pos, PointerDeviceKind.touch, e);
+        }
+      },
+      { passive: false, signal }
+    );
 
-    this.canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        const pointer = this._touchPointerMap.get(t.identifier);
-        if (pointer === undefined) continue;
-        const pos = this.getLogicalPos(t.clientX, t.clientY);
-        this.dispatchPointer(PointerEventType.move, pointer, pos, PointerDeviceKind.touch, e);
-      }
-    }, { passive: false, signal });
+    this.canvas.addEventListener(
+      'touchmove',
+      (e) => {
+        e.preventDefault();
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const t = e.changedTouches[i];
+          const pointer = this._touchPointerMap.get(t.identifier);
+          if (pointer === undefined) continue;
+          const pos = this.getLogicalPos(t.clientX, t.clientY);
+          this.dispatchPointer(PointerEventType.move, pointer, pos, PointerDeviceKind.touch, e);
+        }
+      },
+      { passive: false, signal }
+    );
 
     const onTouchEnd = (type: PointerEventType) => (e: TouchEvent) => {
       for (let i = 0; i < e.changedTouches.length; i++) {
@@ -117,21 +149,23 @@ export class EventManager {
 
   /** 合并分发：新系统 + 旧系统共用一次坐标计算 */
   private dispatchAll(
-    type: PointerEventType, pointer: number,
+    type: PointerEventType,
+    pointer: number,
     pos: { x: number; y: number },
     deviceKind: PointerDeviceKind,
     original: MouseEvent | TouchEvent | WheelEvent,
-    legacyType: string,
+    legacyType: string
   ) {
     this.dispatchPointer(type, pointer, pos, deviceKind, original);
     this.dispatchLegacyWithPos(legacyType, original as MouseEvent, pos);
   }
 
   private dispatchPointer(
-    type: PointerEventType, pointer: number,
+    type: PointerEventType,
+    pointer: number,
     pos: { x: number; y: number },
     deviceKind: PointerDeviceKind,
-    original: MouseEvent | TouchEvent | WheelEvent,
+    original: MouseEvent | TouchEvent | WheelEvent
   ) {
     const root = this.getRoot();
     if (!root) return;
@@ -182,6 +216,7 @@ export class EventManager {
     }
   }
 
+  // 获取逻辑坐标
   private getLogicalPos(clientX: number, clientY: number) {
     if (!this._cachedRect) this._updateCache();
     return {
@@ -190,6 +225,7 @@ export class EventManager {
     };
   }
 
+  // 更新坐标变换缓存
   private _updateCache() {
     const rect = this.canvas.getBoundingClientRect();
     const style = window.getComputedStyle(this.canvas);
@@ -201,7 +237,8 @@ export class EventManager {
     const logW = this.canvas.width / pr;
     const logH = this.canvas.height / pr;
     const cW = rect.width - bL - pL - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
-    const cH = rect.height - bT - pT - (parseFloat(style.borderBottomWidth) || 0) - (parseFloat(style.paddingBottom) || 0);
+    const cH =
+      rect.height - bT - pT - (parseFloat(style.borderBottomWidth) || 0) - (parseFloat(style.paddingBottom) || 0);
     this._cachedRect = rect;
     this._cachedOffsetX = rect.left + bL + pL;
     this._cachedOffsetY = rect.top + bT + pT;
@@ -233,24 +270,36 @@ export class EventManager {
     this.canvas.style.outline = 'none';
 
     // 点击 canvas 时自动聚焦，并将焦点设置到被点击的 focusable 节点
-    this.canvas.addEventListener('mousedown', (e) => {
-      this.canvas.focus();
-      const pos = this.getLogicalPos(e.clientX, e.clientY);
-      const target = this.spatialIndex
-        ? this.spatialIndex.hitTestFirst(pos.x, pos.y)
-        : this.getRoot()?.hitTestLegacy(pos.x - (this.getRoot()?.x ?? 0), pos.y - (this.getRoot()?.y ?? 0)) ?? null;
-      this.setFocus(this.findFocusable(target));
-    }, { signal });
+    this.canvas.addEventListener(
+      'mousedown',
+      (e) => {
+        this.canvas.focus();
+        const pos = this.getLogicalPos(e.clientX, e.clientY);
+        const target = this.spatialIndex
+          ? this.spatialIndex.hitTestFirst(pos.x, pos.y)
+          : (this.getRoot()?.hitTestLegacy(pos.x - (this.getRoot()?.x ?? 0), pos.y - (this.getRoot()?.y ?? 0)) ?? null);
+        this.setFocus(this.findFocusable(target));
+      },
+      { signal }
+    );
 
-    this.canvas.addEventListener('keydown', (e) => {
-      const cyanEvent = this.toCyanKeyboardEvent(e);
-      this.dispatchKeyboardEvent('onKeyDown', cyanEvent);
-    }, { signal });
+    this.canvas.addEventListener(
+      'keydown',
+      (e) => {
+        const cyanEvent = this.toCyanKeyboardEvent(e);
+        this.dispatchKeyboardEvent('onKeyDown', cyanEvent);
+      },
+      { signal }
+    );
 
-    this.canvas.addEventListener('keyup', (e) => {
-      const cyanEvent = this.toCyanKeyboardEvent(e);
-      this.dispatchKeyboardEvent('onKeyUp', cyanEvent);
-    }, { signal });
+    this.canvas.addEventListener(
+      'keyup',
+      (e) => {
+        const cyanEvent = this.toCyanKeyboardEvent(e);
+        this.dispatchKeyboardEvent('onKeyUp', cyanEvent);
+      },
+      { signal }
+    );
   }
 
   private toCyanKeyboardEvent(e: KeyboardEvent): CyanKeyboardEvent {
@@ -304,7 +353,9 @@ export class EventManager {
     if (node?.onFocus) node.onFocus();
   }
 
-  get focusedNode() { return this._focusedNode; }
+  get focusedNode() {
+    return this._focusedNode;
+  }
 
   dispose() {
     this._abortController.abort();

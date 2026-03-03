@@ -26,9 +26,6 @@ export class RectNode extends ShapeNode {
     this.markNeedsPaint();
   }
 
-  // 注意：RectNode 使用 _preferredWidth/_preferredHeight（继承自 RenderNode）
-  // 而不是 ShapeNode 的 _prefWidth/_prefHeight
-  // 需要覆盖 performLayout 以使用正确的属性
   public set preferredWidth(v: number | undefined) {
     this._preferredWidth = v;
     this.markNeedsLayout();

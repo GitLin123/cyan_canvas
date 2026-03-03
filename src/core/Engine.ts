@@ -26,6 +26,13 @@ export class CyanEngine {
   public debugDirtyRegions: boolean = false;
   public debugStats = { dirtyNodeCount: 0, dirtyRegionCount: 0 };
   private _resizeHandler: () => void = () => {};
+  private _resizeListeners: Set<(width: number, height: number) => void> = new Set();
+
+  /** 订阅窗口 resize 事件，返回取消订阅函数 */
+  public onResize(listener: (width: number, height: number) => void): () => void {
+    this._resizeListeners.add(listener);
+    return () => this._resizeListeners.delete(listener);
+  }
 
   public get root(): RenderNode | null {
     return this._root;
@@ -112,6 +119,10 @@ export class CyanEngine {
     this.pipelineOwner.dirtyRegionManager.markFullRepaint();
     if (this.root) this.root.markNeedsLayout();
     this._needsFrame = true;
+
+    for (const listener of this._resizeListeners) {
+      listener(width, height);
+    }
   }
 
   /**

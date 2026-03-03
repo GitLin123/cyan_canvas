@@ -16,9 +16,10 @@ import {
   useSequenceAnimation,
   AnimatedContainer, Tween,
 } from '../core/animation'
+import { useWindowSize } from '../core/adaptor/reconciler'
 
-const W = window.innerWidth
-const CARD_W = W - 48
+let W = window.innerWidth
+let CARD_W = W - 48
 
 // ==================== 通用组件 ====================
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -489,6 +490,9 @@ const StyleTab = () => (
 // ==================== 主组件 ====================
 const AllInOneDemo = () => {
   const [activeTab, setActiveTab] = useState<TabName>('布局')
+  const { width, height } = useWindowSize()
+  W = width
+  CARD_W = W - 48
 
   const renderTab = () => {
     switch (activeTab) {
@@ -501,7 +505,7 @@ const AllInOneDemo = () => {
   }
 
   return (
-    <Column width={W} height={window.innerHeight}>
+    <Column width={W} height={height}>
       {/* 标题 */}
       <Container width={W} height={44} color="#1a1a2e" padding={12}>
         <Center>
@@ -529,7 +533,7 @@ const AllInOneDemo = () => {
       </Container>
 
       {/* 内容 */}
-      <SingleChildScrollView width={W} height={window.innerHeight - 96}>
+      <SingleChildScrollView width={W} height={height - 96}>
         {renderTab()}
       </SingleChildScrollView>
     </Column>

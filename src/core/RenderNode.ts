@@ -315,8 +315,6 @@ export abstract class RenderNode implements CyanEventHandlers {
     ctx.restore();
   }
 
-  // --- Hit testing ---
-
   hitTest(result: HitTestResult, localX: number, localY: number): boolean {
     if (!this.visible) return false;
     for (let i = this.children.length - 1; i >= 0; i--) {
@@ -381,8 +379,7 @@ export abstract class RenderNode implements CyanEventHandlers {
     };
   }
 
-  // --- Serialization ---
-
+  //序列化UI树为 JSON 对象，包含 type、props 和 children
   public toJSON(): any {
     return {
       type: this.constructor.name,

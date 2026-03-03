@@ -1,5 +1,9 @@
+import React from 'react';
 import ReactReconciler from 'react-reconciler';
 import { hostConfig } from './hostConfig';
+import { EngineContext } from './hooks';
+
+export { useEngine, useWindowSize } from './hooks';
 
 const CyanReconciler = ReactReconciler(hostConfig as any);
 
@@ -21,7 +25,9 @@ export const CyanRenderer = {
       );
     }
 
-    CyanReconciler.updateContainer(element, engine._reactContainer, null, () => {
+    const wrapped = React.createElement(EngineContext.Provider, { value: engine }, element);
+
+    CyanReconciler.updateContainer(wrapped, engine._reactContainer, null, () => {
       // 触发一次同步布局/绘制以保证首帧显示
       if (engine && typeof engine.markNeedsPaint === 'function') {
         try {

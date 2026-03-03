@@ -14,8 +14,11 @@ export class GestureBinding {
   public readonly router = new PointerRouter();
   public readonly arenaManager = new GestureArenaManager();
   private _hitTests = new Map<number, HitTestResult>();
+  // spatialIndex 可选，如果提供则使用空间索引进行 hitTest，否则使用传统的递归 hitTest 方法
   public spatialIndex: SpatialIndex | null = null;
 
+  // 处理指针事件的入口方法，根据事件类型进行 hitTest，
+  // 分发事件给路径上的节点和 router 中注册的 recognizer
   handlePointerEvent(event: CyanPointerEvent, root: RenderNode) {
     let result: HitTestResult;
 

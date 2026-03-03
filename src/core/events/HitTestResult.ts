@@ -1,10 +1,14 @@
+/**
+ * 定义 HitTestResult 和 HitTestEntry，用于记录命中测试的结果
+ */
+
 import { RenderNode } from '../RenderNode';
 
 export class HitTestEntry {
   constructor(
     public readonly target: RenderNode,
     public readonly localX: number,
-    public readonly localY: number,
+    public readonly localY: number
   ) {}
 }
 

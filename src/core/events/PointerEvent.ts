@@ -4,7 +4,9 @@
  */
 
 export enum PointerDeviceKind {
+  // 鼠标事件
   mouse,
+  // 触摸事件
   touch,
 }
 
@@ -26,11 +28,14 @@ export class CyanPointerEvent {
     public readonly deviceKind: PointerDeviceKind,
     public readonly buttons: number = 0,
     public readonly pressure: number = 1.0,
+    // scrollDeltaX 和 scrollDeltaY 仅在 type 为 scroll 时有意义，表示滚轮滚动的距离，单位为像素
     public readonly scrollDeltaX: number = 0,
     public readonly scrollDeltaY: number = 0,
+    // original 用于保存原始的浏览器事件对象，方便在需要时访问更多细节信息
     public readonly original?: MouseEvent | TouchEvent | WheelEvent
   ) {}
 
+  // transformed 方法用于将事件的坐标进行转换，生成一个新的 CyanPointerEvent，适用于事件在不同坐标系之间传递时使用
   transformed(dx: number, dy: number): CyanPointerEvent {
     return new CyanPointerEvent(
       this.type,

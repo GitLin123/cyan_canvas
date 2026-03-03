@@ -22,7 +22,6 @@ export class RowNode extends RenderNode {
       return { width: 100, height: 100 };
     }
 
-    // === 第1步: 确定容器高度 ===
     // 优先使用 preferredHeight，否则从约束确定
     const containerHeight =
       this._preferredHeight ??
@@ -30,15 +29,12 @@ export class RowNode extends RenderNode {
     // 子项布局用的交叉轴约束：无界时传 INFINITY，让子项报告自然高度
     const childMaxHeight = containerHeight > 0 ? containerHeight : constraints.maxHeight;
 
-    // === 第1.5步: 确定容器宽度（用于 flex 分配基准） ===
-    // 优先使用 preferredWidth，否则从约束确定
     const containerWidth =
       this._preferredWidth ??
       (constraints.maxWidth === Number.POSITIVE_INFINITY
         ? 0 // 如果无界，暂设为 0，flex 不额外分配
         : constraints.maxWidth);
 
-    // === 第2步: 布局所有非 flex 子项（用无界宽度约束获取自然宽度）===
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
     let usedWidth = 0;
     let maxChildHeight = 0;
@@ -58,13 +54,10 @@ export class RowNode extends RenderNode {
       }
     });
 
-    // === 第3步: 计算 flex 分配 ===
-    // 使用 containerWidth 而不是 constraints.maxWidth
     const availableWidth = Math.max(0, containerWidth > 0 ? containerWidth - usedWidth : usedWidth);
 
     const flexUnit = totalFlexNodes > 0 ? availableWidth / totalFlexNodes : 0;
 
-    // === 第4步: 布局 flex 子项 ===
     this.children.forEach((child) => {
       if (child.flex) {
         const flexAlloc = Math.max(0, Math.floor((child.flex || 0) * flexUnit));
@@ -79,14 +72,12 @@ export class RowNode extends RenderNode {
       }
     });
 
-    // === 第5步: 确定容器最终宽度 ===
     let finalWidth = usedWidth;
     if (this.mainAxisSize === MainAxisSize.Max && containerWidth > 0) {
       finalWidth = containerWidth;
     }
     finalWidth = Math.max(constraints.minWidth, Math.min(constraints.maxWidth, finalWidth));
 
-    // === 第6步: 放置子项（根据对齐模式计算位置） ===
     const childCount = this.children.length;
     let offsetX = 0;
     let gap = 0;
@@ -126,7 +117,6 @@ export class RowNode extends RenderNode {
         offsetX = 0;
     }
 
-    // === 第7步: 处理交叉轴对齐（高度） ===
     const crossHeight = containerHeight > 0 ? containerHeight : maxChildHeight;
     this.children.forEach((child) => {
       let cy = 0;
@@ -151,8 +141,6 @@ export class RowNode extends RenderNode {
       offsetX += child.width + gap;
     });
 
-    // === 第8步: 返回容器最终尺寸 ===
-    // 高度：优先使用 preferredHeight，否则自适应子项高度
     const resultHeight = this._preferredHeight ?? Math.max(maxChildHeight, constraints.minHeight);
     return {
       width: finalWidth,
@@ -163,5 +151,4 @@ export class RowNode extends RenderNode {
   paintSelf(ctx: PaintingContext): void {
     // Row 本身不绘制内容
   }
-
 }

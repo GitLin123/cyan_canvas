@@ -30,15 +30,9 @@ export class FlexNode extends RenderNode {
   }
 
   private performHorizontalLayout(constraints: BoxConstraints): Size {
-    const containerWidth =
-      this.width > 0
-        ? Math.min(this.width, constraints.maxWidth)
-        : constraints.maxWidth;
+    const containerWidth = this.width > 0 ? Math.min(this.width, constraints.maxWidth) : constraints.maxWidth;
 
-    const containerHeight =
-      this.height > 0
-        ? Math.min(this.height, constraints.maxHeight)
-        : constraints.maxHeight;
+    const containerHeight = this.height > 0 ? Math.min(this.height, constraints.maxHeight) : constraints.maxHeight;
 
     // 1) 统计 flex 并先给非 flex 子项做 layout
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
@@ -86,8 +80,7 @@ export class FlexNode extends RenderNode {
         offsetX = Math.max(0, Math.floor((containerWidth - usedWidth) / 2));
         break;
       case MainAxisAlignment.SpaceBetween:
-        gap =
-          childCount > 1 ? (containerWidth - usedWidth) / (childCount - 1) : 0;
+        gap = childCount > 1 ? (containerWidth - usedWidth) / (childCount - 1) : 0;
         offsetX = 0;
         break;
       case MainAxisAlignment.Start:
@@ -95,7 +88,7 @@ export class FlexNode extends RenderNode {
         offsetX = 0;
     }
 
-    // 4) 放置子节点并处理交叉轴对齐
+    // 放置子节点并处理交叉轴对齐
     this.children.forEach((child) => {
       let cy = 0;
       switch (this.crossAxisAlignment) {
@@ -121,16 +114,10 @@ export class FlexNode extends RenderNode {
   }
 
   private performVerticalLayout(constraints: BoxConstraints): Size {
-    const containerHeight = Math.min(
-      this.height ?? constraints.maxHeight,
-      constraints.maxHeight
-    );
-    const containerWidth = Math.min(
-      this.width ?? constraints.maxWidth,
-      constraints.maxWidth
-    );
+    const containerHeight = Math.min(this.height ?? constraints.maxHeight, constraints.maxHeight);
+    const containerWidth = Math.min(this.width ?? constraints.maxWidth, constraints.maxWidth);
 
-    // 1) 统计 flex 并先给非 flex 子项做 layout
+    //  统计 flex 并先给非 flex 子项做 layout
     const totalFlexNodes = this.children.reduce((s, c) => s + (c.flex || 0), 0);
     let usedHeight = 0;
     let maxWidth = 0;
@@ -147,7 +134,7 @@ export class FlexNode extends RenderNode {
       }
     });
 
-    // 2) 分配给 flex 子项高度并 layout
+    // 分配给 flex 子项高度并 layout
     const remaining = Math.max(0, containerHeight - usedHeight);
     const flexUnit = totalFlexNodes > 0 ? remaining / totalFlexNodes : 0;
     this.children.forEach((child) => {
@@ -164,7 +151,7 @@ export class FlexNode extends RenderNode {
       }
     });
 
-    // 3) 根据 mainAxisAlignment 计算起始偏移和间隙
+    //计算起始偏移和间隙
     const childCount = this.children.length;
     let offsetY = 0;
     let gap = 0;
@@ -176,10 +163,7 @@ export class FlexNode extends RenderNode {
         offsetY = Math.max(0, Math.floor((containerHeight - usedHeight) / 2));
         break;
       case MainAxisAlignment.SpaceBetween:
-        gap =
-          childCount > 1
-            ? (containerHeight - usedHeight) / (childCount - 1)
-            : 0;
+        gap = childCount > 1 ? (containerHeight - usedHeight) / (childCount - 1) : 0;
         offsetY = 0;
         break;
       case MainAxisAlignment.Start:
@@ -187,7 +171,7 @@ export class FlexNode extends RenderNode {
         offsetY = 0;
     }
 
-    // 4) 放置子节点并处理交叉轴对齐
+    // 放置子节点并处理交叉轴对齐
     this.children.forEach((child) => {
       let cx = 0;
       switch (this.crossAxisAlignment) {

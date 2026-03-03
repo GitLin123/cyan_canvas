@@ -1,3 +1,7 @@
+/**
+ * GestureRecognizer.ts
+ * 手势识别器，定义了基本的手势识别逻辑和一些常见的手势识别 触摸，拖动，长按
+ */
 import { CyanPointerEvent, PointerEventType } from './PointerEvent';
 import { GestureArenaMember, GestureArenaManager } from './GestureArena';
 import { PointerRouter } from './PointerRouter';
@@ -10,7 +14,7 @@ export abstract class GestureRecognizer implements GestureArenaMember {
 
   constructor(
     protected router: PointerRouter,
-    protected arenaManager: GestureArenaManager,
+    protected arenaManager: GestureArenaManager
   ) {}
 
   private _handleEvent = (event: CyanPointerEvent) => this.handleEvent(event);
@@ -29,10 +33,12 @@ export abstract class GestureRecognizer implements GestureArenaMember {
     this._trackedPointers.get(pointer)?.resolve(disposition);
   }
 
-  dispose() { this._trackedPointers.clear(); }
+  dispose() {
+    this._trackedPointers.clear();
+  }
 }
 
-// --- Tap ---
+// 触摸
 export class TapGestureRecognizer extends GestureRecognizer {
   onTap?: () => void;
   onTapDown?: (e: CyanPointerEvent) => void;
@@ -50,26 +56,43 @@ export class TapGestureRecognizer extends GestureRecognizer {
     } else if (event.type === PointerEventType.move) {
       if (this._down && this._slopExceeded(event)) this.resolve(event.pointer, 'rejected');
     } else if (event.type === PointerEventType.up) {
-      if (this._won) { this.onTapUp?.(event); this.onTap?.(); this._reset(); }
-      else { this._up = event; this.resolve(event.pointer, 'accepted'); }
+      if (this._won) {
+        this.onTapUp?.(event);
+        this.onTap?.();
+        this._reset();
+      } else {
+        this._up = event;
+        this.resolve(event.pointer, 'accepted');
+      }
     }
   }
 
   acceptGesture(_p: number) {
     this._won = true;
     if (this._down) this.onTapDown?.(this._down);
-    if (this._up) { this.onTapUp?.(this._up); this.onTap?.(); this._reset(); }
+    if (this._up) {
+      this.onTapUp?.(this._up);
+      this.onTap?.();
+      this._reset();
+    }
   }
-  rejectGesture(_p: number) { this._reset(); }
+  rejectGesture(_p: number) {
+    this._reset();
+  }
 
   private _slopExceeded(e: CyanPointerEvent) {
-    const dx = e.localX - this._down!.localX, dy = e.localY - this._down!.localY;
+    const dx = e.localX - this._down!.localX,
+      dy = e.localY - this._down!.localY;
     return dx * dx + dy * dy > kTouchSlop * kTouchSlop;
   }
-  private _reset() { this._down = null; this._up = null; this._won = false; }
+  private _reset() {
+    this._down = null;
+    this._up = null;
+    this._won = false;
+  }
 }
 
-// --- Pan ---
+// Pan 手势识别器，识别用户的拖动手势
 export class PanGestureRecognizer extends GestureRecognizer {
   onPanStart?: (e: CyanPointerEvent) => void;
   onPanUpdate?: (dx: number, dy: number, e: CyanPointerEvent) => void;
@@ -81,7 +104,9 @@ export class PanGestureRecognizer extends GestureRecognizer {
 
   handleEvent(event: CyanPointerEvent) {
     if (event.type === PointerEventType.down) {
-      this._down = event; this._last = event; this._accepted = false;
+      this._down = event;
+      this._last = event;
+      this._accepted = false;
     } else if (event.type === PointerEventType.move) {
       if (this._accepted) {
         const dx = event.localX - (this._last?.localX ?? 0);
@@ -97,17 +122,27 @@ export class PanGestureRecognizer extends GestureRecognizer {
     }
   }
 
-  acceptGesture(_p: number) { this._accepted = true; if (this._down) this.onPanStart?.(this._down); }
-  rejectGesture(_p: number) { this._reset(); }
+  acceptGesture(_p: number) {
+    this._accepted = true;
+    if (this._down) this.onPanStart?.(this._down);
+  }
+  rejectGesture(_p: number) {
+    this._reset();
+  }
 
   private _slopExceeded(e: CyanPointerEvent) {
-    const dx = e.localX - this._down!.localX, dy = e.localY - this._down!.localY;
+    const dx = e.localX - this._down!.localX,
+      dy = e.localY - this._down!.localY;
     return dx * dx + dy * dy > kTouchSlop * kTouchSlop;
   }
-  private _reset() { this._down = null; this._last = null; this._accepted = false; }
+  private _reset() {
+    this._down = null;
+    this._last = null;
+    this._accepted = false;
+  }
 }
 
-// --- LongPress ---
+// 长按手势识别器，识别用户的长按手势
 export class LongPressGestureRecognizer extends GestureRecognizer {
   onLongPress?: (e: CyanPointerEvent) => void;
 
@@ -136,11 +171,20 @@ export class LongPressGestureRecognizer extends GestureRecognizer {
     this._accepted = true;
     // 不立即触发，等定时器到期后在 handleEvent 的 setTimeout 回调中触发
   }
-  rejectGesture(_p: number) { this._clear(); }
+  rejectGesture(_p: number) {
+    this._clear();
+  }
 
   private _slopExceeded(e: CyanPointerEvent) {
-    const dx = e.localX - this._down!.localX, dy = e.localY - this._down!.localY;
+    const dx = e.localX - this._down!.localX,
+      dy = e.localY - this._down!.localY;
     return dx * dx + dy * dy > kTouchSlop * kTouchSlop;
   }
-  private _clear() { if (this._timer) { clearTimeout(this._timer); this._timer = null; } this._down = null; }
+  private _clear() {
+    if (this._timer) {
+      clearTimeout(this._timer);
+      this._timer = null;
+    }
+    this._down = null;
+  }
 }

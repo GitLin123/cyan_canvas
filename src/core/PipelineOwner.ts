@@ -1,3 +1,6 @@
+/**
+ * 管道所有者，管理需要布局和绘制的节点列表，以及脏区域
+ */
 import type { RenderNode } from './RenderNode';
 import { DirtyRegionManager } from './DirtyRegionManager';
 
@@ -22,9 +25,7 @@ export class PipelineOwner {
   addNodeNeedingPaint(node: RenderNode) {
     this._nodesNeedingPaint.push(node);
     // 记录节点当前 bounds 为脏区域（变化前的旧位置）
-    this.dirtyRegionManager.addNodeBounds(
-      node._worldX, node._worldY, node.width, node.height
-    );
+    this.dirtyRegionManager.addNodeBounds(node._worldX, node._worldY, node.width, node.height);
   }
 
   get needsLayout(): boolean {
@@ -39,7 +40,7 @@ export class PipelineOwner {
     return this._nodesNeedingPaint.length;
   }
 
-  /** 增量布局：只处理 relayout boundary 节点 */
+  //增量布局：只处理 relayout boundary
   flushLayout() {
     // 按深度排序，确保父节点先布局
     this._nodesNeedingLayout.sort((a, b) => a.depth - b.depth);
@@ -54,13 +55,11 @@ export class PipelineOwner {
     }
   }
 
-  /** 收集脏节点的新 bounds（布局后），然后清空脏列表 */
+  //收集脏节点的新 bounds（布局后），然后清空脏列表
   flushPaint() {
     // 布局完成后，节点的 worldX/worldY 已更新，记录新位置为脏区域
     for (const node of this._nodesNeedingPaint) {
-      this.dirtyRegionManager.addNodeBounds(
-        node._worldX, node._worldY, node.width, node.height
-      );
+      this.dirtyRegionManager.addNodeBounds(node._worldX, node._worldY, node.width, node.height);
     }
     this._nodesNeedingPaint.length = 0;
   }
