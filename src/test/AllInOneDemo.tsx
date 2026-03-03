@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 import {
   Column, Row, Rect, Text, Container, Padding, Center,
   GestureDetector, Listener, SingleChildScrollView,
-  Stack, Wrap, Flex, Align, SizedBox, AspectRatio,
+  Stack, Wrap, Flex, Align, SizedBox,
   Expanded, Spacer, Positioned, Opacity, ClipRRect,
-  Transform, ConstrainedBox, FractionallySizedBox,
-  LimitedBox, FittedBox, OverflowBox, Offstage,
+  Transform, Offstage,
 } from '../core/adaptor/reconciler/components'
+import { Gap, Card, TextButton } from '../core/adaptor/reconciler/widgets'
 import {
   MainAxisAlignment, CrossAxisAlignment, TextAlign,
-  FontWeight, FontStyle, Alignment, BoxFit,
+  FontWeight, FontStyle, Alignment,
 } from '../core/types/container'
 import {
   useNumberAnimation, Curves, AnimationController,
@@ -23,13 +23,13 @@ const CARD_W = W - 48
 // ==================== 通用组件 ====================
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Padding padding={12}>
-    <Container width={CARD_W} color="#fff" padding={16} borderRadius={10} border={1} borderColor="#e0e0e0">
+    <Card width={CARD_W}>
       <Column width={CARD_W - 32}>
         <Text text={title} fontSize={16} fontWeight={FontWeight.W600} color="#333" />
-        <Padding padding={8} />
+        <Gap size={8} />
         {children}
       </Column>
-    </Container>
+    </Card>
   </Padding>
 )
 
@@ -113,7 +113,7 @@ const LayoutTab = () => (
       </Row>
     </SectionCard>
 
-    <Padding padding={24} />
+    <Gap size={24} />
   </Column>
 )
 // ==================== 节点 Tab ====================
@@ -168,13 +168,13 @@ const NodesTab = () => (
     <SectionCard title="Offstage 隐藏/显示">
       <Row width={CARD_W - 32} height={50}>
         <Offstage offstage={false}><Rect width={60} height={50} color="#00b894" borderRadius={8} /></Offstage>
-        <Padding padding={8} />
+        <Gap size={8} />
         <Offstage offstage={true}><Rect width={60} height={50} color="#e17055" borderRadius={8} /></Offstage>
         <Text text="← 第二个被隐藏" fontSize={12} color="#888" />
       </Row>
     </SectionCard>
 
-    <Padding padding={24} />
+    <Gap size={24} />
   </Column>
 )
 // ==================== 动画 Tab ====================
@@ -190,7 +190,7 @@ const CurvePreview = ({ name, curve }: { name: string; curve: any }) => {
       <Column width={84} height={84} crossAxisAlignment={CrossAxisAlignment.Center}>
         <Rect width={80} height={4} color="#e0e0e0" borderRadius={2} />
         <Rect x={Math.max(0, animatedValue * 0.7)} y={-8} width={12} height={12} color="#FF6B6B" borderRadius={6} />
-        <Padding padding={16} />
+        <Gap size={16} />
         <Text text={name} fontSize={10} fontWeight={FontWeight.W600} color="#333" textAlign={TextAlign.Center} />
       </Column>
     </Container>
@@ -235,7 +235,7 @@ const ImplicitDemo = ({ w }: { w: number }) => {
           borderRadius={big ? 16 : 4}
           animationDuration={500} animationCurve={Curves.easeInOut}
         />
-        <Padding padding={4} />
+        <Gap size={4} />
         <Text text="点击切换" fontSize={10} color="#999" />
       </Column>
     </Container>
@@ -267,7 +267,7 @@ const AnimationTab = () => (
     {/* 数值动画 */}
     <SectionCard title="数值动画 (点击播放)">
       <SizeAnimCard title="缩放" begin={30} end={120} color="#4CAF50" />
-      <Padding padding={8} />
+      <Gap size={8} />
       <SizeAnimCard title="弹性" begin={30} end={120} color="#FF9800" curve={Curves.elasticOut} />
     </SectionCard>
 
@@ -281,7 +281,7 @@ const AnimationTab = () => (
       <ImplicitDemo w={CARD_W - 32} />
     </SectionCard>
 
-    <Padding padding={24} />
+    <Gap size={24} />
   </Column>
 )
 
@@ -298,7 +298,7 @@ const SizeAnimCard = ({ title, begin, end, color, curve }: {
       <Center width={CARD_W - 32} height={80}>
         <Row mainAxisAlignment={MainAxisAlignment.Center} width={CARD_W - 32}>
           <Rect width={animatedValue} height={animatedValue} color={color} borderRadius={4} />
-          <Padding padding={12} />
+          <Gap size={12} />
           <Column>
             <Text text={title} fontSize={12} fontWeight={FontWeight.W600} color="#333" />
             <Text text={`${Math.round(animatedValue)}px`} fontSize={10} color="#999" />
@@ -404,7 +404,7 @@ const GestureTab = () => {
               <Center>
                 <Column crossAxisAlignment={CrossAxisAlignment.Center}>
                   <Text text="点击此区域，然后按任意键" fontSize={14} color="#B0BEC5" fontWeight={FontWeight.W600} />
-                  <Padding padding={4} />
+                  <Gap size={4} />
                   <Text text="支持 Ctrl/Shift/Alt 组合键检测" fontSize={11} color="#78909C" />
                 </Column>
               </Center>
@@ -425,7 +425,7 @@ const GestureTab = () => {
         </Container>
       </Padding>
 
-      <Padding padding={24} />
+      <Gap size={24} />
     </Column>
   )
 }
@@ -440,12 +440,12 @@ const StyleTab = () => (
         <Text text="W400" fontSize={14} fontWeight={FontWeight.W400} color="#333" />
         <Text text="W700" fontSize={14} fontWeight={FontWeight.W700} color="#333" />
       </Row>
-      <Padding padding={8} />
+      <Gap size={8} />
       <Row width={CARD_W - 32} mainAxisAlignment={MainAxisAlignment.SpaceAround}>
         <Text text="Normal" fontSize={14} fontStyle={FontStyle.Normal} color="#333" />
         <Text text="Italic" fontSize={14} fontStyle={FontStyle.Italic} color="#333" />
       </Row>
-      <Padding padding={8} />
+      <Gap size={8} />
       <Text text="左对齐" fontSize={13} textAlign={TextAlign.Left} color="#555" width={CARD_W - 32} />
       <Text text="居中对齐" fontSize={13} textAlign={TextAlign.Center} color="#555" width={CARD_W - 32} />
       <Text text="右对齐" fontSize={13} textAlign={TextAlign.Right} color="#555" width={CARD_W - 32} />
@@ -483,7 +483,7 @@ const StyleTab = () => (
       />
     </SectionCard>
 
-    <Padding padding={24} />
+    <Gap size={24} />
   </Column>
 )
 // ==================== 主组件 ====================
@@ -513,18 +513,17 @@ const AllInOneDemo = () => {
       <Container width={W} height={52} color="#1a1a2e" padding={8}>
         <Row width={W - 16} mainAxisAlignment={MainAxisAlignment.SpaceEvenly}>
           {TABS.map(tab => (
-            <GestureDetector key={tab} onTap={() => setActiveTab(tab)}>
-              <Container
-                width={Math.floor((W - 40) / TABS.length)}
-                height={36}
-                color={activeTab === tab ? '#667eea' : '#2d2d4e'}
-                borderRadius={18}
-              >
-                <Center>
-                  <Text text={tab} fontSize={13} color="#fff" fontWeight={activeTab === tab ? FontWeight.W700 : FontWeight.W400} />
-                </Center>
-              </Container>
-            </GestureDetector>
+            <TextButton
+              key={tab}
+              text={tab}
+              onTap={() => setActiveTab(tab)}
+              width={Math.floor((W - 40) / TABS.length)}
+              height={36}
+              color={activeTab === tab ? '#667eea' : '#2d2d4e'}
+              fontSize={13}
+              fontWeight={activeTab === tab ? FontWeight.W700 : FontWeight.W400}
+              borderRadius={18}
+            />
           ))}
         </Row>
       </Container>

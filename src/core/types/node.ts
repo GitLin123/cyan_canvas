@@ -147,10 +147,6 @@ export interface SizedBoxProps extends BaseProps {
   child?: any;
 }
 
-export interface AspectRatioProps extends BaseProps {
-  aspectRatio?: number;
-  child?: any;
-}
 
 export interface FlexProps extends PositionableProps, ClippableProps, DirectionalProps {
   direction?: Direction;
@@ -229,37 +225,6 @@ export interface TransformProps extends BaseProps {
   originY?: number;
 }
 
-export interface ConstrainedBoxProps extends BaseProps {
-  constraintMinWidth?: number;
-  constraintMaxWidth?: number;
-  constraintMinHeight?: number;
-  constraintMaxHeight?: number;
-}
-
-export interface FractionallySizedBoxProps extends AlignableProps {
-  widthFactor?: number;
-  heightFactor?: number;
-}
-
-export interface LimitedBoxProps extends BaseProps {
-  maxLimitWidth?: number;
-  maxLimitHeight?: number;
-}
-
-export interface FittedBoxProps extends BaseProps {
-  fit?: BoxFit;
-  width?: number;
-  height?: number;
-}
-
-export interface OverflowBoxProps extends AlignableProps {
-  overflowMinWidth?: number;
-  overflowMaxWidth?: number;
-  overflowMinHeight?: number;
-  overflowMaxHeight?: number;
-  width?: number;
-  height?: number;
-}
 
 export interface OffstageProps extends BaseProps {
   offstage?: boolean;

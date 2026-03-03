@@ -59,7 +59,7 @@ export class CurvedAnimation extends Animation {
     // 应用曲线变换
     const newValue = curve.transform(parentValue);
 
-    // 更新值（通过 setter）
+    // 更新值
     (this as any).value = newValue;
   }
 

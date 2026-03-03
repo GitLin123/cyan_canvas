@@ -1,6 +1,6 @@
 /**
  * Curve - 缓动曲线实现
- * 用于将线性的 [0, 1] 时间映射到非线性的动画值
+ * 把线性的时间进度 t（0→1），通过三次贝塞尔曲线映射成非线性的动画进度
  */
 
 import type { Curve } from '../types/animation';
@@ -81,7 +81,7 @@ export class Cubic implements Curve {
     return ((1 - u) * (1 - u) * 3 * this.y1 + (1 - u) * 3 * this.y2 * u + u * u) * u;
   }
 
-  // dX/du
+  // dX/du x的一阶导数，用于牛顿法求解
   private _bezierXDerivative(u: number): number {
     return 3 * (1 - u) * (1 - u) * this.x1 + 6 * (1 - u) * u * (this.x2 - this.x1) + 3 * u * u * (1 - this.x2);
   }
@@ -97,12 +97,14 @@ export class Cubic implements Curve {
       u -= dx / d;
     }
     // 牛顿法未收敛，退回二分法
-    let lo = 0, hi = 1;
+    let lo = 0,
+      hi = 1;
     u = x;
     for (let i = 0; i < 20; i++) {
       const dx = this._bezierX(u) - x;
       if (Math.abs(dx) < 1e-6) return u;
-      if (dx > 0) hi = u; else lo = u;
+      if (dx > 0) hi = u;
+      else lo = u;
       u = (lo + hi) / 2;
     }
     return u;

@@ -81,6 +81,7 @@ export class ColorTween extends Tween<string> {
 
 /**
  * 链接 Animatable
+ * 用于将一个 Animatable 链接到另一个 Animatable 上，使其值随着父 Animatable 的值变化而变化
  */
 export class ChainingAnimatable<T> implements Animatable<T> {
   constructor(

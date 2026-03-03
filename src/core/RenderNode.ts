@@ -59,20 +59,30 @@ export abstract class RenderNode implements CyanEventHandlers {
   public _isMouseOver: boolean = false;
 
   // --- Pipeline state getters ---
-  public get depth(): number { return this._depth; }
-  public get needsLayout(): boolean { return this._needsLayout; }
-  public get owner(): PipelineOwner | null { return this._owner; }
+  public get depth(): number {
+    return this._depth;
+  }
+  public get needsLayout(): boolean {
+    return this._needsLayout;
+  }
+  public get owner(): PipelineOwner | null {
+    return this._owner;
+  }
 
   // --- Position/size getters & setters ---
 
-  public get x() { return this._x; }
+  public get x() {
+    return this._x;
+  }
   public set x(v: number) {
     if (this._x === v) return;
     this._x = v;
     this.markNeedsLayout();
   }
 
-  public get y() { return this._y; }
+  public get y() {
+    return this._y;
+  }
   public set y(v: number) {
     if (this._y === v) return;
     this._y = v;
@@ -97,28 +107,36 @@ export abstract class RenderNode implements CyanEventHandlers {
     this.markNeedsLayout();
   }
 
-  public get preferredWidth() { return this._preferredWidth; }
+  public get preferredWidth() {
+    return this._preferredWidth;
+  }
   public set preferredWidth(v: number | undefined) {
     if (this._preferredWidth === v) return;
     this._preferredWidth = v;
     this.markNeedsLayout();
   }
 
-  public get preferredHeight() { return this._preferredHeight; }
+  public get preferredHeight() {
+    return this._preferredHeight;
+  }
   public set preferredHeight(v: number | undefined) {
     if (this._preferredHeight === v) return;
     this._preferredHeight = v;
     this.markNeedsLayout();
   }
 
-  public get offsetX() { return this._offsetX; }
+  public get offsetX() {
+    return this._offsetX;
+  }
   public set offsetX(v: number) {
     if (this._offsetX === v) return;
     this._offsetX = v;
     this.markNeedsPaint();
   }
 
-  public get offsetY() { return this._offsetY; }
+  public get offsetY() {
+    return this._offsetY;
+  }
   public set offsetY(v: number) {
     if (this._offsetY === v) return;
     this._offsetY = v;
@@ -216,26 +234,23 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   layout(constraints: BoxConstraints) {
     if (!BoxConstraintsHelper.isValid(constraints)) {
-      constraints = BoxConstraintsHelper.loose(
-        constraints.maxWidth || 800, constraints.maxHeight || 600
-      );
+      constraints = BoxConstraintsHelper.loose(constraints.maxWidth || 800, constraints.maxHeight || 600);
     }
 
     // Determine relayout boundary
     const isRelayoutBoundary =
       this.parent === null ||
-      (constraints.minWidth === constraints.maxWidth &&
-       constraints.minHeight === constraints.maxHeight);
+      (constraints.minWidth === constraints.maxWidth && constraints.minHeight === constraints.maxHeight);
 
-    const relayoutBoundary = isRelayoutBoundary
-      ? this
-      : this.parent!._relayoutBoundary!;
+    const relayoutBoundary = isRelayoutBoundary ? this : this.parent!._relayoutBoundary!;
 
     // Skip layout if not dirty and constraints unchanged
-    if (!this._needsLayout &&
-        this._relayoutBoundary === relayoutBoundary &&
-        this._constraints !== null &&
-        this._constraintsEqual(constraints)) {
+    if (
+      !this._needsLayout &&
+      this._relayoutBoundary === relayoutBoundary &&
+      this._constraints !== null &&
+      this._constraintsEqual(constraints)
+    ) {
       return;
     }
 
@@ -255,16 +270,14 @@ export abstract class RenderNode implements CyanEventHandlers {
     this._width = Math.max(
       constraints.minWidth,
       Math.min(
-        constraints.maxWidth === Number.POSITIVE_INFINITY
-          ? (preferred.width ?? 100) : constraints.maxWidth,
+        constraints.maxWidth === Number.POSITIVE_INFINITY ? (preferred.width ?? 100) : constraints.maxWidth,
         preferred.width ?? 100
       )
     );
     this._height = Math.max(
       constraints.minHeight,
       Math.min(
-        constraints.maxHeight === Number.POSITIVE_INFINITY
-          ? (preferred.height ?? 100) : constraints.maxHeight,
+        constraints.maxHeight === Number.POSITIVE_INFINITY ? (preferred.height ?? 100) : constraints.maxHeight,
         preferred.height ?? 100
       )
     );
@@ -274,8 +287,12 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   private _constraintsEqual(c: BoxConstraints): boolean {
     const o = this._constraints!;
-    return o.minWidth === c.minWidth && o.maxWidth === c.maxWidth &&
-           o.minHeight === c.minHeight && o.maxHeight === c.maxHeight;
+    return (
+      o.minWidth === c.minWidth &&
+      o.maxWidth === c.maxWidth &&
+      o.minHeight === c.minHeight &&
+      o.maxHeight === c.maxHeight
+    );
   }
 
   // --- Paint ---
@@ -308,8 +325,7 @@ export abstract class RenderNode implements CyanEventHandlers {
       const childY = localY - child.y - child._offsetY;
       if (child.hitTest(result, childX, childY)) break;
     }
-    if (localX >= 0 && localX <= this.width &&
-        localY >= 0 && localY <= this.height) {
+    if (localX >= 0 && localX <= this.width && localY >= 0 && localY <= this.height) {
       result.add(new HitTestEntry(this, localX, localY));
       return true;
     }
@@ -339,26 +355,27 @@ export abstract class RenderNode implements CyanEventHandlers {
   // --- Scroll ---
 
   public scroll(deltaX: number, deltaY: number): void {
-    let totalW = 0, totalH = 0;
+    let totalW = 0,
+      totalH = 0;
     for (const child of this.children) {
       totalW = Math.max(totalW, child.x + child.width);
       totalH = Math.max(totalH, child.y + child.height);
     }
-    this.scrollOffsetX = Math.max(0, Math.min(
-      this.scrollOffsetX + deltaX, Math.max(0, totalW - this.width)));
-    this.scrollOffsetY = Math.max(0, Math.min(
-      this.scrollOffsetY + deltaY, Math.max(0, totalH - this.height)));
+    this.scrollOffsetX = Math.max(0, Math.min(this.scrollOffsetX + deltaX, Math.max(0, totalW - this.width)));
+    this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY + deltaY, Math.max(0, totalH - this.height)));
     this.markNeedsPaint();
   }
 
   public getScrollExtent() {
-    let totalW = 0, totalH = 0;
+    let totalW = 0,
+      totalH = 0;
     for (const child of this.children) {
       totalW = Math.max(totalW, child.x + child.width);
       totalH = Math.max(totalH, child.y + child.height);
     }
     return {
-      x: this.scrollOffsetX, y: this.scrollOffsetY,
+      x: this.scrollOffsetX,
+      y: this.scrollOffsetY,
       maxX: Math.max(0, totalW - this.width),
       maxY: Math.max(0, totalH - this.height),
     };

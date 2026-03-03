@@ -163,5 +163,4 @@ export class ColumnNode extends RenderNode {
   paintSelf(ctx: PaintingContext): void {
     // Column 本身不绘制内容
   }
-
 }

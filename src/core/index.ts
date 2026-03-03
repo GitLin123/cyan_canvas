@@ -34,7 +34,6 @@ export { CenterNode } from './nodes/layout/CenterNode';
 export { AlignNode } from './nodes/layout/AlignNode';
 export { FlexNode } from './nodes/layout/FlexNode';
 export { SizedBoxNode } from './nodes/layout/SizedBoxNode';
-export { AspectRatioNode } from './nodes/layout/AspectRatioNode';
 export { StackNode } from './nodes/layout/StackNode';
 export { WrapNode } from './nodes/layout/WrapNode';
 export { SingleChildScrollViewNode } from './nodes/layout/SingleChildScrollViewNode';

@@ -14,7 +14,6 @@ import {
   AlignProps,
   CenterProps,
   SizedBoxProps,
-  AspectRatioProps,
   FlexProps,
   WrapProps,
   SingleChildScrollViewProps,
@@ -26,14 +25,10 @@ import {
   OpacityProps,
   ClipRRectProps,
   TransformProps,
-  ConstrainedBoxProps,
-  FractionallySizedBoxProps,
-  LimitedBoxProps,
-  FittedBoxProps,
-  OverflowBoxProps,
   OffstageProps,
 } from '../../types/node';
 
+// 封装一个工厂函数来创建 Cyan 组件，避免重复代码
 function createCyanComponent<P = any>(tagName: string) {
   const Comp: React.FC<React.PropsWithChildren<P>> = (props: React.PropsWithChildren<P>) =>
     React.createElement(tagName, props as any);
@@ -55,7 +50,6 @@ export const Stack = createCyanComponent<StackProps>('cyan-stack');
 export const Align = createCyanComponent<AlignProps>('cyan-align');
 export const Center = createCyanComponent<CenterProps>('cyan-center');
 export const SizedBox = createCyanComponent<SizedBoxProps>('cyan-sizedbox');
-export const AspectRatio = createCyanComponent<AspectRatioProps>('cyan-aspectratio');
 export const Flex = createCyanComponent<FlexProps>('cyan-flex');
 export const Wrap = createCyanComponent<WrapProps>('cyan-wrap');
 export const SingleChildScrollView = createCyanComponent<SingleChildScrollViewProps>('cyan-singlechildscrollview');
@@ -67,9 +61,4 @@ export const Positioned = createCyanComponent<PositionedProps>('cyan-positioned'
 export const Opacity = createCyanComponent<OpacityProps>('cyan-opacity');
 export const ClipRRect = createCyanComponent<ClipRRectProps>('cyan-cliprrect');
 export const Transform = createCyanComponent<TransformProps>('cyan-transform');
-export const ConstrainedBox = createCyanComponent<ConstrainedBoxProps>('cyan-constrainedbox');
-export const FractionallySizedBox = createCyanComponent<FractionallySizedBoxProps>('cyan-fractionallysizedbox');
-export const LimitedBox = createCyanComponent<LimitedBoxProps>('cyan-limitedbox');
-export const FittedBox = createCyanComponent<FittedBoxProps>('cyan-fittedbox');
-export const OverflowBox = createCyanComponent<OverflowBoxProps>('cyan-overflowbox');
 export const Offstage = createCyanComponent<OffstageProps>('cyan-offstage');

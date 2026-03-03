@@ -1,3 +1,8 @@
+/**
+ * GestureArena - 手势竞技场
+ * 用于管理多个手势识别器之间的竞争关系，确保只有一个识别器能够成功识别手势
+ */
+
 export interface GestureArenaMember {
   acceptGesture(pointer: number): void;
   rejectGesture(pointer: number): void;
@@ -7,7 +12,7 @@ class GestureArenaEntry {
   constructor(
     private arena: GestureArenaManager,
     public pointer: number,
-    public member: GestureArenaMember,
+    public member: GestureArenaMember
   ) {}
 
   resolve(disposition: 'accepted' | 'rejected') {
@@ -50,7 +55,7 @@ export class GestureArenaManager {
     const arena = this._arenas.get(pointer);
     if (!arena) return;
     if (disposition === 'rejected') {
-      arena.members = arena.members.filter(m => m !== member);
+      arena.members = arena.members.filter((m) => m !== member);
       member.rejectGesture(pointer);
       if (!arena.isOpen) this._tryResolve(pointer, arena);
     } else {

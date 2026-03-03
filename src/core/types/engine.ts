@@ -13,3 +13,9 @@ export interface EngineOptions {
   // 渲染后端：'canvas2d' | 'webgl' | 'auto'，默认 'canvas2d'
   renderer?: 'canvas2d' | 'webgl' | 'auto';
 }
+
+export enum EngineRendererType {
+  Canvas2D = 'canvas2d',
+  WebGL = 'webgl',
+  Auto = 'auto',
+}

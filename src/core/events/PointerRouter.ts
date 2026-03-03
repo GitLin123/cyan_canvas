@@ -1,3 +1,8 @@
+/**
+ * PointerRouter - 指针事件路由器
+ * 用于将指针事件路由到对应的处理函数，支持多指操作和事件冒泡机制
+ */
+
 import { CyanPointerEvent, PointerEventType } from './PointerEvent';
 
 type PointerRoute = (event: CyanPointerEvent) => void;
@@ -17,7 +22,7 @@ export class PointerRouter {
   route(event: CyanPointerEvent) {
     const routes = this._routes.get(event.pointer);
     if (routes) {
-      routes.forEach(route => route(event));
+      routes.forEach((route) => route(event));
     }
     if (event.type === PointerEventType.up || event.type === PointerEventType.cancel) {
       this._routes.delete(event.pointer);

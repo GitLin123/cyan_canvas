@@ -12,7 +12,6 @@ import { StackNode } from '../../nodes/layout/StackNode';
 import { AlignNode } from '../../nodes/layout/AlignNode';
 import { CenterNode } from '../../nodes/layout/CenterNode';
 import { SizedBoxNode } from '../../nodes/layout/SizedBoxNode';
-import { AspectRatioNode } from '../../nodes/layout/AspectRatioNode';
 import { FlexNode } from '../../nodes/layout/FlexNode';
 import { WrapNode } from '../../nodes/layout/WrapNode';
 import { SingleChildScrollViewNode } from '../../nodes/layout/SingleChildScrollViewNode';
@@ -24,11 +23,6 @@ import { PositionedNode } from '../../nodes/layout/PositionedNode';
 import { OpacityNode } from '../../nodes/layout/OpacityNode';
 import { ClipRRectNode } from '../../nodes/layout/ClipRRectNode';
 import { TransformNode } from '../../nodes/layout/TransformNode';
-import { ConstrainedBoxNode } from '../../nodes/layout/ConstrainedBoxNode';
-import { FractionallySizedBoxNode } from '../../nodes/layout/FractionallySizedBoxNode';
-import { LimitedBoxNode } from '../../nodes/layout/LimitedBoxNode';
-import { FittedBoxNode } from '../../nodes/layout/FittedBoxNode';
-import { OverflowBoxNode } from '../../nodes/layout/OverflowBoxNode';
 import { OffstageNode } from '../../nodes/layout/OffstageNode';
 
 export const COMPONENT_MAP: Record<string, any> = {
@@ -46,7 +40,6 @@ export const COMPONENT_MAP: Record<string, any> = {
   'cyan-align': AlignNode,
   'cyan-center': CenterNode,
   'cyan-sizedbox': SizedBoxNode,
-  'cyan-aspectratio': AspectRatioNode,
   'cyan-flex': FlexNode,
   'cyan-wrap': WrapNode,
   'cyan-singlechildscrollview': SingleChildScrollViewNode,
@@ -58,10 +51,5 @@ export const COMPONENT_MAP: Record<string, any> = {
   'cyan-opacity': OpacityNode,
   'cyan-cliprrect': ClipRRectNode,
   'cyan-transform': TransformNode,
-  'cyan-constrainedbox': ConstrainedBoxNode,
-  'cyan-fractionallysizedbox': FractionallySizedBoxNode,
-  'cyan-limitedbox': LimitedBoxNode,
-  'cyan-fittedbox': FittedBoxNode,
-  'cyan-overflowbox': OverflowBoxNode,
   'cyan-offstage': OffstageNode,
 };

@@ -1,3 +1,8 @@
+/**
+ * GestureBinding
+ * 处理指针事件的分发和手势识别的绑定。
+ */
+
 import { CyanPointerEvent, PointerEventType } from './PointerEvent';
 import { HitTestResult } from './HitTestResult';
 import { PointerRouter } from './PointerRouter';
@@ -28,9 +33,7 @@ export class GestureBinding {
 
     // 先分发给路径上每个节点（down 时注册 recognizer 路由）
     for (const entry of result.path) {
-      entry.target.handlePointerEvent?.(
-        event.transformed(entry.localX, entry.localY)
-      );
+      entry.target.handlePointerEvent?.(event.transformed(entry.localX, entry.localY));
     }
 
     // 再通过 router 分发（recognizer 已注册，可收到事件）
