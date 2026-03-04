@@ -3,12 +3,12 @@
  * 相当于 Flutter 的 Opacity，对子树应用透明度
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class OpacityNode extends RenderNode {
+export class OpacityNode extends SingleChildLayoutNode {
   private _opacity: number = 1;
 
   public get opacity() { return this._opacity; }

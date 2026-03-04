@@ -1,4 +1,4 @@
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from './RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 
@@ -7,6 +7,11 @@ import { Size } from '../../types/node';
  * 为所有单子节点容器提供通用的约束处理和布局逻辑
  */
 export abstract class SingleChildLayoutNode extends RenderNode {
+  // 限制只能有一个子节点
+  protected get maxChildCount(): number {
+    return 1;
+  }
+
   /**
    * 计算最终尺寸（应用约束）
    * 处理 Infinity 和边界情况
@@ -22,17 +27,11 @@ export abstract class SingleChildLayoutNode extends RenderNode {
     return {
       width: Math.max(
         constraints.minWidth,
-        Math.min(
-          constraints.maxWidth === Number.POSITIVE_INFINITY ? width : constraints.maxWidth,
-          width
-        )
+        Math.min(constraints.maxWidth === Number.POSITIVE_INFINITY ? width : constraints.maxWidth, width)
       ),
       height: Math.max(
         constraints.minHeight,
-        Math.min(
-          constraints.maxHeight === Number.POSITIVE_INFINITY ? height : constraints.maxHeight,
-          height
-        )
+        Math.min(constraints.maxHeight === Number.POSITIVE_INFINITY ? height : constraints.maxHeight, height)
       ),
     };
   }
@@ -40,12 +39,7 @@ export abstract class SingleChildLayoutNode extends RenderNode {
   /**
    * 布局子节点并设置位置
    */
-  protected layoutChild(
-    child: RenderNode,
-    constraints: BoxConstraints,
-    x: number = 0,
-    y: number = 0
-  ): void {
+  protected layoutChild(child: RenderNode, constraints: BoxConstraints, x: number = 0, y: number = 0): void {
     child.layout(constraints);
     child.setPosition(x, y);
   }

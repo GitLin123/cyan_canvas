@@ -1,4 +1,4 @@
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import {
   BoxConstraints,
   BoxDecoration,
@@ -12,7 +12,7 @@ import {
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class ContainerNode extends RenderNode {
+export class ContainerNode extends SingleChildLayoutNode {
   public padding: number = 0;
   private _color: string = 'transparent';
   public margin: number = 0;
@@ -20,14 +20,18 @@ export class ContainerNode extends RenderNode {
   private _borderRadius: number = 0;
   public borderColor: string = 'transparent';
 
-  public get color(): string { return this._color; }
+  public get color(): string {
+    return this._color;
+  }
   public set color(v: string) {
     if (this._color === v) return;
     this._color = v;
     this.markNeedsPaint();
   }
 
-  public get borderRadius(): number { return this._borderRadius; }
+  public get borderRadius(): number {
+    return this._borderRadius;
+  }
   public set borderRadius(v: number) {
     if (this._borderRadius === v) return;
     this._borderRadius = v;
@@ -131,18 +135,18 @@ export class ContainerNode extends RenderNode {
       maxHeight: innerMaxHeight,
     };
 
-    // 布局所有子节点
+    // 布局唯一的子节点（如果存在）
     let contentWidth = 0;
     let contentHeight = 0;
-    this.children.forEach((child) => {
+
+    const child = this.firstChild;
+    if (child) {
       child.layout(innerConstraints);
-      child.setPosition(
-        this.margin + this.border + this.padding,
-        this.margin + this.border + this.padding
-      );
-      contentWidth = Math.max(contentWidth, child.width);
-      contentHeight = Math.max(contentHeight, child.height);
-    });
+      // 子节点位置在 padding/border/margin 内部
+      child.setPosition(innerOffset, innerOffset);
+      contentWidth = child.width;
+      contentHeight = child.height;
+    }
 
     // 理想尺寸
     const innerTotalX = contentWidth + this.padding * 2 + this.border * 2;
@@ -159,7 +163,6 @@ export class ContainerNode extends RenderNode {
       this._preferredHeight !== undefined && this._preferredHeight !== null
         ? this._preferredHeight
         : Math.max(constraints.minHeight, Math.min(constraints.maxHeight, idealHeight));
-
     return { width: finalWidth, height: finalHeight };
   }
 
@@ -300,5 +303,4 @@ export class ContainerNode extends RenderNode {
 
     ctx.restore();
   }
-
 }

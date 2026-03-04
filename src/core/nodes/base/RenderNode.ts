@@ -1,10 +1,15 @@
-import { Size } from './types/node';
-import { BoxConstraints, BoxConstraintsHelper } from './types/container';
-import { CyanEventHandlers, CyanKeyboardEvent } from './types/events';
-import type { PipelineOwner } from './PipelineOwner';
-import { HitTestResult, HitTestEntry } from './events/HitTestResult';
-import { CyanPointerEvent } from './events/PointerEvent';
-import type { PaintingContext } from './backend/PaintingContext';
+/**
+ * RenderNode 是 CyanCanvas 的核心渲染单元，负责布局、绘制和事件处理。
+ * 它维护了位置、尺寸、子节点列表以及与 PipelineOwner 的关系
+ */
+
+import { Size } from '../../types/node';
+import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
+import { CyanEventHandlers, CyanKeyboardEvent } from '../../types/events';
+import type { PipelineOwner } from '../../PipelineOwner';
+import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
+import { CyanPointerEvent } from '../../events/PointerEvent';
+import type { PaintingContext } from '../../backend/PaintingContext';
 
 export abstract class RenderNode implements CyanEventHandlers {
   public parent: RenderNode | null = null;
@@ -56,6 +61,7 @@ export abstract class RenderNode implements CyanEventHandlers {
   public onFocus?: () => void;
   public onBlur?: () => void;
   public focusable: boolean = false;
+  public scrollable: boolean = false;
   public _isMouseOver: boolean = false;
 
   // --- Pipeline state getters ---
@@ -145,7 +151,18 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   // --- Tree operations ---
 
+  // 子类可以重写此方法来限制子节点数量
+  protected get maxChildCount(): number | null {
+    return null; // null 表示无限制
+  }
+
   add(child: RenderNode) {
+    if (this.maxChildCount !== null && this.children.length >= this.maxChildCount) {
+      throw new Error(
+        `${this.constructor.name} can only have ${this.maxChildCount} child(ren), but attempted to add more. ` +
+          `Current children: ${this.children.length}`
+      );
+    }
     child.parent = this;
     this.children.push(child);
     if (this._owner) child.attach(this._owner);

@@ -1,6 +1,6 @@
 import { COMPONENT_MAP } from './nodes';
 import { TextNode } from '../../nodes/TextNode';
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../../nodes/base/RenderNode';
 import { CyanEngine } from '../../Engine';
 
 const SKIP_PROPS = new Set(['children', 'width', 'height', 'x', 'y']);
@@ -37,14 +37,26 @@ export const hostConfig = {
     parent.add(child);
   },
 
-  finalizeInitialChildren() { return false; },
+  finalizeInitialChildren() {
+    return false;
+  },
 
-  getRootHostContext() { return {}; },
-  getChildHostContext(parentContext: any) { return parentContext; },
-  getPublicInstance(instance: RenderNode) { return instance; },
-  prepareForCommit() { return null; },
+  getRootHostContext() {
+    return {};
+  },
+  getChildHostContext(parentContext: any) {
+    return parentContext;
+  },
+  getPublicInstance(instance: RenderNode) {
+    return instance;
+  },
+  prepareForCommit() {
+    return null;
+  },
   resetAfterCommit() {},
-  shouldSetTextContent() { return false; },
+  shouldSetTextContent() {
+    return false;
+  },
 
   createTextInstance(text: string) {
     return new TextNode(text);
@@ -54,7 +66,9 @@ export const hostConfig = {
     textInstance.text = newText;
   },
 
-  prepareUpdate() { return true; },
+  prepareUpdate() {
+    return true;
+  },
 
   commitUpdate(instance: RenderNode, _payload: any, _type: string, _oldProps: any, newProps: Record<string, any>) {
     applyLayoutProps(instance, newProps);

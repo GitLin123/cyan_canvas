@@ -4,7 +4,7 @@
  * 必须作为 Row/Column/Flex 的子节点使用
  */
 
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';

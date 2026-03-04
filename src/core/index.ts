@@ -1,6 +1,6 @@
 // 导出核心引擎
 export { CyanEngine } from './Engine';
-export { RenderNode } from './RenderNode';
+export { RenderNode } from './nodes/base/RenderNode';
 
 // 导出渲染后端
 export type { PaintingContext } from './backend/PaintingContext';
@@ -44,8 +44,13 @@ export type { BoxConstraints } from './types/constraints';
 export type { EngineOptions } from './types/engine';
 export type { CyanEventHandlers } from './types/events';
 export type {
-  TextShadow, ColorFilter, BoxDecoration, BoxBorder,
-  BoxShadow, Gradient, TransformMatrix,
+  TextShadow,
+  ColorFilter,
+  BoxDecoration,
+  BoxBorder,
+  BoxShadow,
+  Gradient,
+  TransformMatrix,
 } from './types/decorations';
 export {
   MainAxisAlignment,

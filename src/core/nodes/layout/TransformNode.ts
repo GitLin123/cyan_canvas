@@ -3,12 +3,12 @@
  * 相当于 Flutter 的 Transform，对子树应用 2D 变换（平移、旋转、缩放）
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class TransformNode extends RenderNode {
+export class TransformNode extends SingleChildLayoutNode {
   private _translateX: number = 0;
   private _translateY: number = 0;
   private _scaleX: number = 1;

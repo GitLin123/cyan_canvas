@@ -2,7 +2,7 @@
  * 定义 HitTestResult 和 HitTestEntry，用于记录命中测试的结果
  */
 
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from '../nodes/base/RenderNode';
 
 export class HitTestEntry {
   constructor(

@@ -4,7 +4,7 @@
  * 在有限视口内显示可能更大的内容，并支持滚动。
  */
 
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints, BoxConstraintsHelper, Direction } from '../../types/container';
 import { Size } from '../../types/node';
 import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
@@ -15,10 +15,7 @@ export class SingleChildScrollViewNode extends RenderNode {
 
   constructor() {
     super();
-    this.onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      this.scroll(e.deltaX, e.deltaY);
-    };
+    this.scrollable = true;
   }
 
   performLayout(constraints: BoxConstraints): Size {

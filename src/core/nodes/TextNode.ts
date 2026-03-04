@@ -9,7 +9,7 @@ import {
   TextDirection,
   TextShadow,
 } from '../types/container';
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from './base/RenderNode';
 import type { PaintingContext } from '../backend/PaintingContext';
 
 export class TextNode extends RenderNode {

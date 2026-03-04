@@ -1,4 +1,4 @@
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from '../nodes/base/RenderNode';
 import { CyanPointerEvent, PointerEventType, PointerDeviceKind } from './PointerEvent';
 import { GestureBinding } from './GestureBinding';
 import { GestureDetectorNode } from '../nodes/GestureDetectorNode';
@@ -98,7 +98,15 @@ export class EventManager {
       },
       { signal }
     );
-    this.canvas.addEventListener('wheel', (e) => this.dispatchLegacy('wheel', e), { passive: false, signal });
+    this.canvas.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        const pos = this.getLogicalPos(e.clientX, e.clientY);
+        this.dispatchScroll(pos, e.deltaX, e.deltaY, e);
+      },
+      { passive: false, signal }
+    );
   }
 
   private initTouchEvents() {
@@ -216,6 +224,42 @@ export class EventManager {
     }
   }
 
+  /** 沿父链查找最近的可滚动节点 */
+  private findScrollable(node: RenderNode | null): RenderNode | null {
+    while (node) {
+      if (node.scrollable && typeof (node as any).scroll === 'function') return node;
+      node = node.parent;
+    }
+    return null;
+  }
+
+  /** 统一 scroll 分发：hitTest → 找最近可滚动节点 → scroll() + onWheel 回调 */
+  private dispatchScroll(pos: { x: number; y: number }, deltaX: number, deltaY: number, originalEvent: WheelEvent) {
+    const root = this.getRoot();
+    if (!root) return;
+
+    // hitTest 找到目标节点
+    const target = this.spatialIndex
+      ? this.spatialIndex.hitTestFirst(pos.x, pos.y)
+      : root.hitTestLegacy(pos.x - root.x, pos.y - root.y);
+
+    // 沿父链找最近的可滚动节点并调用 scroll()
+    const scrollTarget = this.findScrollable(target);
+    if (scrollTarget) {
+      (scrollTarget as any).scroll(deltaX, deltaY);
+    }
+
+    // 兼容旧 API：沿父链触发 onWheel 回调
+    let node: RenderNode | null = target;
+    while (node) {
+      if (typeof node.onWheel === 'function') {
+        node.onWheel(originalEvent);
+        break;
+      }
+      node = node.parent;
+    }
+  }
+
   // 获取逻辑坐标
   private getLogicalPos(clientX: number, clientY: number) {
     if (!this._cachedRect) this._updateCache();
@@ -286,6 +330,8 @@ export class EventManager {
     this.canvas.addEventListener(
       'keydown',
       (e) => {
+        // 键盘滚动：方向键和空格
+        if (this.handleKeyboardScroll(e)) return;
         const cyanEvent = this.toCyanKeyboardEvent(e);
         this.dispatchKeyboardEvent('onKeyDown', cyanEvent);
       },
@@ -300,6 +346,30 @@ export class EventManager {
       },
       { signal }
     );
+  }
+
+  private static readonly KEYBOARD_SCROLL_AMOUNT = 15;
+
+  /** 处理键盘滚动，返回 true 表示已消费该事件 */
+  private handleKeyboardScroll(e: KeyboardEvent): boolean {
+    const scrollKeys: Record<string, [number, number]> = {
+      ArrowUp: [0, -EventManager.KEYBOARD_SCROLL_AMOUNT],
+      ArrowDown: [0, EventManager.KEYBOARD_SCROLL_AMOUNT],
+      ArrowLeft: [-EventManager.KEYBOARD_SCROLL_AMOUNT, 0],
+      ArrowRight: [EventManager.KEYBOARD_SCROLL_AMOUNT, 0],
+      ' ': [0, EventManager.KEYBOARD_SCROLL_AMOUNT * 10],
+    };
+    const delta = scrollKeys[e.key];
+    if (!delta) return false;
+
+    // 从焦点节点向上找可滚动祖先；无焦点则从 root 找
+    const startNode = this._focusedNode ?? this.getRoot();
+    const scrollTarget = this.findScrollable(startNode);
+    if (!scrollTarget) return false;
+
+    e.preventDefault();
+    (scrollTarget as any).scroll(delta[0], delta[1]);
+    return true;
   }
 
   private toCyanKeyboardEvent(e: KeyboardEvent): CyanKeyboardEvent {

@@ -8,8 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "lib": ["ESNext", "DOM"],
-    "baseUrl": "./src",
-    "outDir": "dist"
+    "noEmit": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "dist"]

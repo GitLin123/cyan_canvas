@@ -4,7 +4,7 @@
  * 必须作为 Stack 的子节点使用
  */
 
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
@@ -15,28 +15,36 @@ export class PositionedNode extends RenderNode {
   private _bottom?: number;
   private _left?: number;
 
-  public get top() { return this._top; }
+  public get top() {
+    return this._top;
+  }
   public set top(v: number | undefined) {
     if (this._top === v) return;
     this._top = v;
     this.markNeedsLayout();
   }
 
-  public get right() { return this._right; }
+  public get right() {
+    return this._right;
+  }
   public set right(v: number | undefined) {
     if (this._right === v) return;
     this._right = v;
     this.markNeedsLayout();
   }
 
-  public get bottom() { return this._bottom; }
+  public get bottom() {
+    return this._bottom;
+  }
   public set bottom(v: number | undefined) {
     if (this._bottom === v) return;
     this._bottom = v;
     this.markNeedsLayout();
   }
 
-  public get left() { return this._left; }
+  public get left() {
+    return this._left;
+  }
   public set left(v: number | undefined) {
     if (this._left === v) return;
     this._left = v;
@@ -67,7 +75,7 @@ export class PositionedNode extends RenderNode {
     if (this.children.length > 0) {
       const child = this.children[0];
       const childConstraints: BoxConstraints =
-        hasLeft && hasRight || hasTop && hasBottom
+        (hasLeft && hasRight) || (hasTop && hasBottom)
           ? {
               minWidth: hasLeft && hasRight ? childMaxWidth : 0,
               maxWidth: childMaxWidth,

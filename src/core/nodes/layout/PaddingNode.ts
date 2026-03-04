@@ -4,12 +4,12 @@
  * 按照 Flutter 的原理严格实现约束处理
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class PaddingNode extends RenderNode {
+export class PaddingNode extends SingleChildLayoutNode {
   public padding: number = 0;
   public paddingTop: number = 0;
   public paddingBottom: number = 0;

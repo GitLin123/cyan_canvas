@@ -5,7 +5,7 @@
  * 它会先根据子节点的 flex 属性分配剩余空间，然后根据对齐方式计算子节点的位置。
  */
 
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints, Direction } from '../../types/container';
 import { Size } from '../../types/node';
 import { MainAxisAlignment, CrossAxisAlignment } from '../../types/container';

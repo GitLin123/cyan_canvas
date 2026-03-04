@@ -4,53 +4,52 @@
  * 如果指定了显式的 width/height，则给子项严格的约束；否则让子项自然扩展。
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class SizedBoxNode extends RenderNode {
+export class SizedBoxNode extends SingleChildLayoutNode {
   constructor() {
     super();
   }
 
   performLayout(constraints: BoxConstraints): Size {
-    // === 确定 SizedBox 的最终尺寸 ===
-    // 优先用显式的 preferredWidth/preferredHeight，否则占满约束范围
-    const width = this._preferredWidth ?? constraints.maxWidth;
-    const height = this._preferredHeight ?? constraints.maxHeight;
+    // === 布局子项（先布局子项以获取自然尺寸） ===
+    const hasChild = this.children.length > 0;
 
-    // 严格应用约束
-    const finalWidth = Math.max(
-      constraints.minWidth,
-      Math.min(constraints.maxWidth === Number.POSITIVE_INFINITY ? width : constraints.maxWidth, width)
-    );
+    // 未指定维度时：有子项则用约束上限（让子项决定），无子项则收缩为 0
+    const targetWidth = this._preferredWidth ?? (hasChild ? constraints.maxWidth : 0);
+    const targetHeight = this._preferredHeight ?? (hasChild ? constraints.maxHeight : 0);
 
-    const finalHeight = Math.max(
-      constraints.minHeight,
-      Math.min(constraints.maxHeight === Number.POSITIVE_INFINITY ? height : constraints.maxHeight, height)
-    );
+    const finalWidth = Math.max(constraints.minWidth, Math.min(constraints.maxWidth, targetWidth));
+    const finalHeight = Math.max(constraints.minHeight, Math.min(constraints.maxHeight, targetHeight));
 
-    // === 布局子项 ===
-    if (this.children.length > 0) {
+    if (hasChild) {
       const child = this.children[0];
 
-      // 关键：如果显式指定了尺寸，给子项 tight 约束强制其适应
-      // 否则给宽松约束让子项自由选择
       const childConstraints =
         this._preferredWidth !== undefined && this._preferredHeight !== undefined
-          ? BoxConstraintsHelper.tight(finalWidth, finalHeight) // 显式指定尺寸 -> tight 约束
+          ? BoxConstraintsHelper.tight(finalWidth, finalHeight)
           : {
               minWidth: 0,
               maxWidth: finalWidth,
               minHeight: 0,
               maxHeight: finalHeight,
-            }; // 未指定尺寸 -> 宽松约束
+            };
 
       child.layout(childConstraints);
-
-      // 子节点放在左上角
       child.setPosition(0, 0);
+
+      // 未指定维度时，收缩到子项的实际尺寸
+      const resultWidth = this._preferredWidth !== undefined
+        ? finalWidth
+        : Math.max(constraints.minWidth, Math.min(constraints.maxWidth, child.width));
+      const resultHeight = this._preferredHeight !== undefined
+        ? finalHeight
+        : Math.max(constraints.minHeight, Math.min(constraints.maxHeight, child.height));
+
+      return { width: resultWidth, height: resultHeight };
     }
 
     return { width: finalWidth, height: finalHeight };

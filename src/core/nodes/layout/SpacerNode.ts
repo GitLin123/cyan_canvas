@@ -4,7 +4,7 @@
  * 用于在 Row/Column 中创建弹性空白
  */
 
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';

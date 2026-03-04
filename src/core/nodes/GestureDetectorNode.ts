@@ -1,4 +1,4 @@
-import { RenderNode } from '../RenderNode';
+import { SingleChildLayoutNode } from './base/SingleChildLayoutNode';
 import { CyanPointerEvent, PointerEventType } from '../events/PointerEvent';
 import { GestureBinding } from '../events/GestureBinding';
 import {
@@ -11,7 +11,7 @@ import { BoxConstraints } from '../types/container';
 import { Size } from '../types/node';
 import type { PaintingContext } from '../backend/PaintingContext';
 
-export class GestureDetectorNode extends RenderNode {
+export class GestureDetectorNode extends SingleChildLayoutNode {
   public onTap?: () => void;
   public onTapDown?: (e: CyanPointerEvent) => void;
   public onTapUp?: (e: CyanPointerEvent) => void;
@@ -37,12 +37,16 @@ export class GestureDetectorNode extends RenderNode {
 
     if (this.onTap || this.onTapDown || this.onTapUp) {
       const t = new TapGestureRecognizer(router, arenaManager);
-      t.onTap = this.onTap; t.onTapDown = this.onTapDown; t.onTapUp = this.onTapUp;
+      t.onTap = this.onTap;
+      t.onTapDown = this.onTapDown;
+      t.onTapUp = this.onTapUp;
       this._recognizers.push(t);
     }
     if (this.onPanStart || this.onPanUpdate || this.onPanEnd) {
       const p = new PanGestureRecognizer(router, arenaManager);
-      p.onPanStart = this.onPanStart; p.onPanUpdate = this.onPanUpdate; p.onPanEnd = this.onPanEnd;
+      p.onPanStart = this.onPanStart;
+      p.onPanUpdate = this.onPanUpdate;
+      p.onPanEnd = this.onPanEnd;
       this._recognizers.push(p);
     }
     if (this.onLongPress) {

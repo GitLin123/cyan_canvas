@@ -7,7 +7,7 @@ import { CyanPointerEvent, PointerEventType } from './PointerEvent';
 import { HitTestResult } from './HitTestResult';
 import { PointerRouter } from './PointerRouter';
 import { GestureArenaManager } from './GestureArena';
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from '../nodes/base/RenderNode';
 import type { SpatialIndex } from '../spatial/SpatialIndex';
 
 export class GestureBinding {

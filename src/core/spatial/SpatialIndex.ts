@@ -1,4 +1,4 @@
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from '../nodes/base/RenderNode';
 import { RTree, type AABB } from './RTree';
 import { HitTestResult, HitTestEntry } from '../events/HitTestResult';
 

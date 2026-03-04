@@ -1,10 +1,10 @@
-import { RenderNode } from '../RenderNode';
+import { SingleChildLayoutNode } from './base/SingleChildLayoutNode';
 import { CyanPointerEvent, PointerEventType } from '../events/PointerEvent';
 import { BoxConstraints } from '../types/container';
 import { Size } from '../types/node';
 import type { PaintingContext } from '../backend/PaintingContext';
 
-export class ListenerNode extends RenderNode {
+export class ListenerNode extends SingleChildLayoutNode {
   public onPointerDown?: (e: CyanPointerEvent) => void;
   public onPointerMove?: (e: CyanPointerEvent) => void;
   public onPointerUp?: (e: CyanPointerEvent) => void;
@@ -12,10 +12,18 @@ export class ListenerNode extends RenderNode {
 
   handlePointerEvent(event: CyanPointerEvent) {
     switch (event.type) {
-      case PointerEventType.down: this.onPointerDown?.(event); break;
-      case PointerEventType.move: this.onPointerMove?.(event); break;
-      case PointerEventType.up: this.onPointerUp?.(event); break;
-      case PointerEventType.cancel: this.onPointerCancel?.(event); break;
+      case PointerEventType.down:
+        this.onPointerDown?.(event);
+        break;
+      case PointerEventType.move:
+        this.onPointerMove?.(event);
+        break;
+      case PointerEventType.up:
+        this.onPointerUp?.(event);
+        break;
+      case PointerEventType.cancel:
+        this.onPointerCancel?.(event);
+        break;
     }
   }
 

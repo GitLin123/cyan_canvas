@@ -1,4 +1,4 @@
-import { RenderNode } from '../RenderNode';
+import { RenderNode } from './base/RenderNode';
 import { BoxConstraints, BoxFit, ImageRepeat, Alignment, BlendMode, ColorFilter } from '../types/container';
 import { Size } from '../types/node';
 import type { PaintingContext } from '../backend/PaintingContext';

@@ -4,7 +4,7 @@ import { Canvas2DPaintingContext } from './Canvas2DPaintingContext';
 
 /**
  * Canvas 2D 渲染后端
- * 封装双画布（offscreen + main）合成逻辑
+ * 封装双画布合成逻辑
  */
 export class Canvas2DRenderingBackend implements RenderingBackend {
   public readonly canvas: HTMLCanvasElement;
@@ -24,13 +24,19 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
   }
 
   /** 主画布的 PaintingContext（用于 debug 绘制等） */
-  get mainPaintingContext(): Canvas2DPaintingContext { return this._mainPaintingContext; }
+  get mainPaintingContext(): Canvas2DPaintingContext {
+    return this._mainPaintingContext;
+  }
 
   /** 主画布原生 ctx（Engine debug 高亮需要） */
-  get mainCtx(): CanvasRenderingContext2D { return this._ctx; }
+  get mainCtx(): CanvasRenderingContext2D {
+    return this._ctx;
+  }
 
   /** 离屏画布（合成时 drawImage 需要） */
-  get offscreenCanvas(): HTMLCanvasElement { return this._offscreenCanvas; }
+  get offscreenCanvas(): HTMLCanvasElement {
+    return this._offscreenCanvas;
+  }
 
   resize(width: number, height: number, pixelRatio: number): void {
     this.canvas.width = width * pixelRatio;
@@ -95,8 +101,10 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
     this._ctx.save();
     this._ctx.setTransform(1, 0, 0, 1, 0, 0);
     for (const r of regions) {
-      const sx = r.minX * pixelRatio, sy = r.minY * pixelRatio;
-      const sw = (r.maxX - r.minX) * pixelRatio, sh = (r.maxY - r.minY) * pixelRatio;
+      const sx = r.minX * pixelRatio,
+        sy = r.minY * pixelRatio;
+      const sw = (r.maxX - r.minX) * pixelRatio,
+        sh = (r.maxY - r.minY) * pixelRatio;
       this._ctx.drawImage(this._offscreenCanvas, sx, sy, sw, sh, sx, sy, sw, sh);
     }
     this._ctx.restore();

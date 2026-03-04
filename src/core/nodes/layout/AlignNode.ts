@@ -4,12 +4,12 @@
  * 按照 Flutter 的原理严格实现约束处理
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper, Alignment } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class AlignNode extends RenderNode {
+export class AlignNode extends SingleChildLayoutNode {
   public alignment: Alignment = Alignment.Center;
 
   constructor() {

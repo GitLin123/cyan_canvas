@@ -1,8 +1,7 @@
-import { Ticker } from './ticker';
-import { RenderNode } from './RenderNode';
+import { Ticker } from './Ticker';
+import { RenderNode } from './nodes/base/RenderNode';
 import { PipelineOwner } from './PipelineOwner';
 import { EventManager } from './events/index';
-import { ScrollEventManager } from './events/ScrollEventManager';
 import { SpatialIndex } from './spatial/SpatialIndex';
 import type { RenderingBackend } from './backend/RenderingBackend';
 import { Canvas2DRenderingBackend } from './backend/Canvas2DRenderingBackend';
@@ -21,7 +20,6 @@ export class CyanEngine {
   private _needsFrame: boolean = true;
   private _frameCount: number = 0;
   private eventManager: EventManager;
-  private scrollEventManager: ScrollEventManager;
   public readonly spatialIndex = new SpatialIndex();
   public debugDirtyRegions: boolean = false;
   public debugStats = { dirtyNodeCount: 0, dirtyRegionCount: 0 };
@@ -62,14 +60,6 @@ export class CyanEngine {
 
     this.ticker = new Ticker();
     this.eventManager = new EventManager(this.canvas, () => this.root, this.spatialIndex);
-    this.scrollEventManager = new ScrollEventManager(
-      this.canvas,
-      () => this.root,
-      () => {
-        this.pipelineOwner.dirtyRegionManager.markFullRepaint();
-        this._needsFrame = true;
-      }
-    );
     this.setupCanvas(options.pixelRatio || window.devicePixelRatio);
     this.initPipeline();
   }
@@ -192,34 +182,6 @@ export class CyanEngine {
       this.root.paint(paintCtx);
       this.backend.compositeDirtyRegions(dirtyRegions, pr);
     }
-    // dirtyRegions.length === 0: 无脏区域，跳过绘制
-
-    // Debug: 高亮脏区域（仅 Canvas 2D 后端支持）
-    if (this.debugDirtyRegions && this.backend instanceof Canvas2DRenderingBackend) {
-      const ctx = this.backend.mainCtx;
-      ctx.save();
-      ctx.setTransform(pr, 0, 0, pr, 0, 0);
-
-      if (dirtyRegions === null) {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.18)';
-        ctx.fillRect(0, 0, width, height);
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, width, height);
-      } else if (dirtyRegions.length > 0) {
-        for (const r of dirtyRegions) {
-          const w = r.maxX - r.minX;
-          const h = r.maxY - r.minY;
-          ctx.fillStyle = 'rgba(255, 0, 0, 0.18)';
-          ctx.fillRect(r.minX, r.minY, w, h);
-          ctx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
-          ctx.lineWidth = 1.5;
-          ctx.strokeRect(r.minX, r.minY, w, h);
-        }
-      }
-
-      ctx.restore();
-    }
 
     this._needsFrame = false;
   }
@@ -241,7 +203,6 @@ export class CyanEngine {
     this.ticker.stop();
     window.removeEventListener('resize', this._resizeHandler);
     this.eventManager.dispose();
-    this.scrollEventManager.dispose();
     this.backend.dispose();
     if (this._root) {
       this._root.detach();

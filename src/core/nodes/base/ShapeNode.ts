@@ -1,4 +1,4 @@
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from './RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';

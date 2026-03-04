@@ -3,12 +3,12 @@
  * 相当于 Flutter 的 ClipRRect，对子树应用圆角矩形裁剪
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class ClipRRectNode extends RenderNode {
+export class ClipRRectNode extends SingleChildLayoutNode {
   private _borderRadius: number = 0;
 
   public get borderRadius() { return this._borderRadius; }

@@ -1,4 +1,4 @@
-import type { RenderNode } from '../RenderNode';
+import type { RenderNode } from '../nodes/base/RenderNode';
 import type { AABB } from '../types/geometry';
 
 export type { AABB };
@@ -11,13 +11,16 @@ interface LeafEntry {
 interface RTreeNode {
   bbox: AABB;
   children: RTreeNode[] | null; // null = leaf level
-  leaves: LeafEntry[] | null;   // non-null only at leaf level
+  leaves: LeafEntry[] | null; // non-null only at leaf level
 }
 
 const M = 16; // fan-out factor
 
 function unionBBox(items: { bbox: AABB }[]): AABB {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const { bbox } of items) {
     if (bbox.minX < minX) minX = bbox.minX;
     if (bbox.minY < minY) minY = bbox.minY;
@@ -32,8 +35,7 @@ function containsPoint(b: AABB, x: number, y: number) {
 }
 
 function intersects(a: AABB, b: AABB) {
-  return a.minX <= b.maxX && a.maxX >= b.minX &&
-         a.minY <= b.maxY && a.maxY >= b.minY;
+  return a.minX <= b.maxX && a.maxX >= b.minX && a.minY <= b.maxY && a.maxY >= b.minY;
 }
 
 /** STR bulk-load: sort by x-center, slice into √N strips, sort each strip by y-center */
@@ -43,7 +45,7 @@ function buildSTR(entries: LeafEntry[]): RTreeNode {
   }
 
   // sort by x-center
-  entries.sort((a, b) => (a.bbox.minX + a.bbox.maxX) - (b.bbox.minX + b.bbox.maxX));
+  entries.sort((a, b) => a.bbox.minX + a.bbox.maxX - (b.bbox.minX + b.bbox.maxX));
   const sliceCount = Math.ceil(Math.sqrt(entries.length / M));
   const sliceSize = Math.ceil(entries.length / sliceCount);
 
@@ -51,7 +53,7 @@ function buildSTR(entries: LeafEntry[]): RTreeNode {
   for (let i = 0; i < entries.length; i += sliceSize) {
     const slice = entries.slice(i, i + sliceSize);
     // sort slice by y-center
-    slice.sort((a, b) => (a.bbox.minY + a.bbox.maxY) - (b.bbox.minY + b.bbox.maxY));
+    slice.sort((a, b) => a.bbox.minY + a.bbox.maxY - (b.bbox.minY + b.bbox.maxY));
     for (let j = 0; j < slice.length; j += M) {
       const group = slice.slice(j, j + M);
       childNodes.push({ bbox: unionBBox(group), children: null, leaves: group });
@@ -64,18 +66,18 @@ function buildSTR(entries: LeafEntry[]): RTreeNode {
 
 function buildUpper(nodes: RTreeNode[]): RTreeNode {
   if (nodes.length <= M) {
-    return { bbox: unionBBox(nodes.map(n => ({ bbox: n.bbox }))), children: nodes, leaves: null };
+    return { bbox: unionBBox(nodes.map((n) => ({ bbox: n.bbox }))), children: nodes, leaves: null };
   }
-  nodes.sort((a, b) => (a.bbox.minX + a.bbox.maxX) - (b.bbox.minX + b.bbox.maxX));
+  nodes.sort((a, b) => a.bbox.minX + a.bbox.maxX - (b.bbox.minX + b.bbox.maxX));
   const sliceCount = Math.ceil(Math.sqrt(nodes.length / M));
   const sliceSize = Math.ceil(nodes.length / sliceCount);
   const parents: RTreeNode[] = [];
   for (let i = 0; i < nodes.length; i += sliceSize) {
     const slice = nodes.slice(i, i + sliceSize);
-    slice.sort((a, b) => (a.bbox.minY + a.bbox.maxY) - (b.bbox.minY + b.bbox.maxY));
+    slice.sort((a, b) => a.bbox.minY + a.bbox.maxY - (b.bbox.minY + b.bbox.maxY));
     for (let j = 0; j < slice.length; j += M) {
       const group = slice.slice(j, j + M);
-      parents.push({ bbox: unionBBox(group.map(n => ({ bbox: n.bbox }))), children: group, leaves: null });
+      parents.push({ bbox: unionBBox(group.map((n) => ({ bbox: n.bbox }))), children: group, leaves: null });
     }
   }
   return buildUpper(parents);
@@ -88,7 +90,10 @@ export class RTree {
   private _rebuildThreshold = 50; // 累积50个变更后重建
 
   build(entries: { node: RenderNode; bbox: AABB }[]) {
-    if (entries.length === 0) { this._root = null; return; }
+    if (entries.length === 0) {
+      this._root = null;
+      return;
+    }
     this._root = buildSTR(entries);
     this._pendingInserts = [];
     this._pendingRemoves.clear();
@@ -127,7 +132,7 @@ export class RTree {
     }
 
     // 过滤删除的节点
-    const filtered = allEntries.filter(e => !this._pendingRemoves.has(e.node));
+    const filtered = allEntries.filter((e) => !this._pendingRemoves.has(e.node));
 
     // 添加新节点
     filtered.push(...this._pendingInserts);

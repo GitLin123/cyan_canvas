@@ -3,12 +3,12 @@
  * 相当于 Flutter 的 Offstage，当 offstage=true 时隐藏子节点但仍参与布局
  */
 
-import { RenderNode } from '../../RenderNode';
+import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
 
-export class OffstageNode extends RenderNode {
+export class OffstageNode extends SingleChildLayoutNode {
   private _offstage: boolean = true;
 
   public get offstage() { return this._offstage; }

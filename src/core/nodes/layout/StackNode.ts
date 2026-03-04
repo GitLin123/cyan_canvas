@@ -2,7 +2,7 @@
  * StackNode负责将子节点堆叠在一起。它的尺寸可以显式指定，也可以由最大的子节点确定。
  * StackNode 不会对其子节点进行任何位置调整，默认将它们放在左上角。可以通过 Align 来定位子节点。
  */
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';

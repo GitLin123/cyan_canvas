@@ -1,4 +1,4 @@
-import { RenderNode } from '../../RenderNode';
+import { RenderNode } from '../base/RenderNode';
 import {
   BoxConstraints,
   BoxConstraintsHelper,

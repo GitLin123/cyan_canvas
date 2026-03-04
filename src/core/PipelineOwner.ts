@@ -1,14 +1,14 @@
 /**
  * 管道所有者，管理需要布局和绘制的节点列表，以及脏区域
  */
-import type { RenderNode } from './RenderNode';
-import { DirtyRegionManager } from './DirtyRegionManager';
+import type { RenderNode } from './nodes/base/RenderNode';
+import { DRManager } from './DRManager';
 
 export class PipelineOwner {
   private _nodesNeedingLayout: RenderNode[] = [];
   private _nodesNeedingPaint: RenderNode[] = [];
   private _onNeedsVisualUpdate: () => void;
-  public readonly dirtyRegionManager = new DirtyRegionManager();
+  public readonly dirtyRegionManager = new DRManager();
 
   constructor(onNeedsVisualUpdate: () => void) {
     this._onNeedsVisualUpdate = onNeedsVisualUpdate;
