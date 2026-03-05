@@ -1,5 +1,3 @@
-// ============ Shader 源码 ============
-
 const SOLID_VERT = `
 attribute vec2 a_position;
 uniform mat4 u_matrix;
@@ -30,6 +28,7 @@ void main() {
 }
 `;
 
+// OpenGL ES 2.0 片元着色器
 const TEXTURE_FRAG = `
 precision mediump float;
 uniform sampler2D u_texture;
@@ -51,10 +50,18 @@ export class ShaderManager {
   public texture!: ShaderProgram;
 
   constructor(private gl: WebGLRenderingContext) {
-    this.solid = this._createProgram(SOLID_VERT, SOLID_FRAG,
-      ['a_position'], ['u_matrix', 'u_projection', 'u_color', 'u_alpha']);
-    this.texture = this._createProgram(TEXTURE_VERT, TEXTURE_FRAG,
-      ['a_position', 'a_texCoord'], ['u_matrix', 'u_projection', 'u_texture', 'u_alpha']);
+    this.solid = this._createProgram(
+      SOLID_VERT,
+      SOLID_FRAG,
+      ['a_position'],
+      ['u_matrix', 'u_projection', 'u_color', 'u_alpha']
+    );
+    this.texture = this._createProgram(
+      TEXTURE_VERT,
+      TEXTURE_FRAG,
+      ['a_position', 'a_texCoord'],
+      ['u_matrix', 'u_projection', 'u_texture', 'u_alpha']
+    );
   }
 
   private _compile(type: number, source: string): WebGLShader {
@@ -70,10 +77,7 @@ export class ShaderManager {
     return shader;
   }
 
-  private _createProgram(
-    vertSrc: string, fragSrc: string,
-    attrNames: string[], uniformNames: string[]
-  ): ShaderProgram {
+  private _createProgram(vertSrc: string, fragSrc: string, attrNames: string[], uniformNames: string[]): ShaderProgram {
     const gl = this.gl;
     const vert = this._compile(gl.VERTEX_SHADER, vertSrc);
     const frag = this._compile(gl.FRAGMENT_SHADER, fragSrc);

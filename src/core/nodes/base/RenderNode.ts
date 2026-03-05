@@ -360,6 +360,11 @@ export abstract class RenderNode implements CyanEventHandlers {
 
   // --- Paint ---
 
+  /** 给子类覆写 paint 时使用，清除本节点 paint 脏标记 */
+  protected markPaintClean() {
+    this._needsPaint = false;
+  }
+
   paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
     ctx.save();
@@ -372,7 +377,7 @@ export abstract class RenderNode implements CyanEventHandlers {
       ctx.translate(-this.scrollOffsetX, -this.scrollOffsetY);
     }
 
-    this._needsPaint = false;
+    this.markPaintClean();
     this.paintSelf(ctx);
     for (const child of this.children) child.paint(ctx);
     ctx.restore();

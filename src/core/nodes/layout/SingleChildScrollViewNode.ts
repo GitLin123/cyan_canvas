@@ -82,7 +82,7 @@ export class SingleChildScrollViewNode extends RenderNode {
   // 视口始终需要裁剪，即使 scrollOffset 为 0
   paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
-    this._needsPaint = false;
+    this.markPaintClean();
     ctx.save();
     ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
     ctx.beginPath();
@@ -130,9 +130,7 @@ export class SingleChildScrollViewNode extends RenderNode {
       this.scrollOffsetX = Math.max(0, Math.min(this.scrollOffsetX + deltaX, maxScroll));
     }
     // 滚动不改变节点 bounds，脏区域管理器检测不到变化，需要强制全量重绘
-    if (this._owner) {
-      this._owner.dirtyRegionManager.markFullRepaint();
-    }
+    this.owner?.dirtyRegionManager.markFullRepaint();
     this.markNeedsPaint();
   }
 
