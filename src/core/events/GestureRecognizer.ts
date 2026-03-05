@@ -5,8 +5,9 @@
 import { CyanPointerEvent, PointerEventType } from './PointerEvent';
 import { GestureArenaMember, GestureArenaManager } from './GestureArena';
 import { PointerRouter } from './PointerRouter';
+import { GESTURE } from '../types/constants';
 
-const kTouchSlop = 18;
+const kTouchSlop = GESTURE.TOUCH_SLOP;
 
 // --- 基类 ---
 export abstract class GestureRecognizer implements GestureArenaMember {
@@ -158,7 +159,7 @@ export class LongPressGestureRecognizer extends GestureRecognizer {
         this._timer = null;
         this.resolve(event.pointer, 'accepted');
         if (this._accepted && this._down) this.onLongPress?.(this._down);
-      }, 500);
+      }, GESTURE.LONG_PRESS_DELAY);
     } else if (event.type === PointerEventType.move) {
       if (this._down && this._slopExceeded(event)) this.resolve(event.pointer, 'rejected');
     } else if (event.type === PointerEventType.up) {

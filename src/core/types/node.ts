@@ -11,12 +11,7 @@ import {
   BoxFit,
   ImageRepeat,
 } from '../types/container';
-import type {
-  TextShadow,
-  BoxShadow,
-  Gradient,
-  ColorFilter,
-} from '../types/container';
+import type { TextShadow, BoxShadow, Gradient, ColorFilter } from '../types/container';
 import {
   BaseProps,
   PositionableProps,
@@ -147,7 +142,6 @@ export interface SizedBoxProps extends BaseProps {
   child?: any;
 }
 
-
 export interface FlexProps extends PositionableProps, ClippableProps, DirectionalProps {
   direction?: Direction;
   mainAxisAlignment?: MainAxisAlignment;
@@ -158,6 +152,7 @@ export interface FlexProps extends PositionableProps, ClippableProps, Directiona
 export interface WrapProps extends PositionableProps, ClippableProps, DirectionalProps {
   direction?: 'horizontal' | 'vertical';
   spacing?: number;
+  // 行间距（主轴换行时的间距）
   runSpacing?: number;
   mainAxisAlignment?: MainAxisAlignment;
   crossAxisAlignment?: CrossAxisAlignment;
@@ -224,7 +219,6 @@ export interface TransformProps extends BaseProps {
   originX?: number;
   originY?: number;
 }
-
 
 export interface OffstageProps extends BaseProps {
   offstage?: boolean;

@@ -2,6 +2,10 @@
 export { CyanEngine } from './Engine';
 export { RenderNode } from './nodes/base/RenderNode';
 
+// 导出性能监控
+export { Monitor, MonitorLevel } from './monitor';
+export type { FrameMetrics, PerformanceReport, MonitorConfig } from './monitor';
+
 // 导出渲染后端
 export type { PaintingContext } from './backend/PaintingContext';
 export type { RenderingBackend } from './backend/RenderingBackend';

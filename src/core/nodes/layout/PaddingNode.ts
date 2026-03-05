@@ -8,6 +8,7 @@ import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { LAYOUT } from '../../types/constants';
 
 export class PaddingNode extends SingleChildLayoutNode {
   public padding: number = 0;
@@ -31,7 +32,7 @@ export class PaddingNode extends SingleChildLayoutNode {
 
   performLayout(constraints: BoxConstraints): Size {
     if (!BoxConstraintsHelper.isValid(constraints)) {
-      return { width: 100, height: 100 };
+      return { width: LAYOUT.FALLBACK_WIDTH, height: LAYOUT.FALLBACK_HEIGHT };
     }
 
     const padding = this.getEffectivePadding();

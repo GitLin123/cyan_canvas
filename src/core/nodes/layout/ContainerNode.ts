@@ -11,14 +11,15 @@ import {
 } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { CONTAINER, COLOR } from '../../types/constants';
 
 export class ContainerNode extends SingleChildLayoutNode {
-  public padding: number = 0;
-  private _color: string = 'transparent';
-  public margin: number = 0;
-  public border: number = 0;
+  public padding: number = CONTAINER.PADDING;
+  private _color: string = COLOR.TRANSPARENT;
+  public margin: number = CONTAINER.MARGIN;
+  public border: number = CONTAINER.BORDER;
   private _borderRadius: number = 0;
-  public borderColor: string = 'transparent';
+  public borderColor: string = COLOR.BORDER;
 
   public get color(): string {
     return this._color;
@@ -41,7 +42,7 @@ export class ContainerNode extends SingleChildLayoutNode {
   // 新增属性
   private _boxShadow: BoxShadow[] = [];
   private _gradient: Gradient | null = null;
-  private _opacity: number = 1;
+  private _opacity: number = CONTAINER.OPACITY;
   private _decoration: BoxDecoration | null = null;
   private _alignment: Alignment = Alignment.Center;
   private _clipBehavior: Clip = Clip.None;

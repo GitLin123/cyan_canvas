@@ -9,7 +9,7 @@ const CyanReconciler = ReactReconciler(hostConfig as any);
 
 export const CyanRenderer = {
   render(element: React.ReactNode, engine: any) {
-    // 不再要求预先存在 engine.root，直接以 engine 作为 containerInfo 创建容器并更新树
+    // 直接以 engine 作为 containerInfo 创建容器并更新树
     if (!engine._reactContainer) {
       engine._reactContainer = CyanReconciler.createContainer(
         engine,

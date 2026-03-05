@@ -38,6 +38,11 @@ export abstract class RenderNode implements CyanEventHandlers {
   private _relayoutBoundary: RenderNode | null = null;
   private _constraints: BoxConstraints | null = null;
 
+  // --- 批量更新优化 ---
+  private _batchUpdateDepth: number = 0;
+  private _pendingLayoutMark: boolean = false;
+  private _pendingPaintMark: boolean = false;
+
   // --- World AABB (由 SpatialIndex 在布局后统一计算) ---
   public _worldX: number = 0;
   public _worldY: number = 0;
@@ -220,9 +225,39 @@ export abstract class RenderNode implements CyanEventHandlers {
     this._owner = null;
   }
 
-  // --- Dirty marking (Flutter-style with incremental layout) ---
+  /**
+   * 批量更新：在回调中进行多个属性修改，最后统一触发布局/绘制
+   * 用法：node.batchUpdate(() => { node.text = 'new'; node.fontSize = 20; });
+   */
+  public batchUpdate(callback: () => void) {
+    this._batchUpdateDepth++;
+    try {
+      callback();
+    } finally {
+      this._batchUpdateDepth--;
+      if (this._batchUpdateDepth === 0) {
+        // 批量更新结束，统一触发标记
+        if (this._pendingLayoutMark) {
+          this._pendingLayoutMark = false;
+          this._doMarkNeedsLayout();
+        } else if (this._pendingPaintMark) {
+          this._pendingPaintMark = false;
+          this._doMarkNeedsPaint();
+        }
+      }
+    }
+  }
 
   markNeedsLayout() {
+    if (this._batchUpdateDepth > 0) {
+      // 批量更新中，延迟标记
+      this._pendingLayoutMark = true;
+      return;
+    }
+    this._doMarkNeedsLayout();
+  }
+
+  private _doMarkNeedsLayout() {
     if (this._needsLayout) return;
     this._needsLayout = true;
 
@@ -238,6 +273,17 @@ export abstract class RenderNode implements CyanEventHandlers {
   }
 
   markNeedsPaint() {
+    if (this._batchUpdateDepth > 0) {
+      // 批量更新中，延迟标记（但如果已经有 layout 标记，就不需要单独的 paint 标记）
+      if (!this._pendingLayoutMark) {
+        this._pendingPaintMark = true;
+      }
+      return;
+    }
+    this._doMarkNeedsPaint();
+  }
+
+  private _doMarkNeedsPaint() {
     if (this._needsPaint) return;
     this._needsPaint = true;
     this._owner?.addNodeNeedingPaint(this);

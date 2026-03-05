@@ -1,6 +1,7 @@
 import type { RenderingBackend, AABB } from './RenderingBackend';
 import type { PaintingContext } from './PaintingContext';
 import { Canvas2DPaintingContext } from './Canvas2DPaintingContext';
+import { COLOR } from '../types/constants';
 
 /**
  * Canvas 2D 渲染后端
@@ -45,7 +46,7 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
     this._offscreenCanvas.height = height * pixelRatio;
     this.canvas.style.width = width + 'px';
     this.canvas.style.height = height + 'px';
-    this.canvas.style.background = '#ffffff';
+    this.canvas.style.background = COLOR.CANVAS_BG;
   }
 
   setupScale(pixelRatio: number): void {
@@ -62,7 +63,7 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
     offCtx.save();
     offCtx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     offCtx.clearRect(0, 0, width, height);
-    offCtx.fillStyle = '#ffffff';
+    offCtx.fillStyle = COLOR.CANVAS_BG;
     offCtx.fillRect(0, 0, width, height);
   }
 
@@ -81,7 +82,7 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
     // 清除脏区域并填白底
     for (const r of regions) {
       offCtx.clearRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
-      offCtx.fillStyle = '#ffffff';
+      offCtx.fillStyle = COLOR.CANVAS_BG;
       offCtx.fillRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
     }
   }
@@ -90,7 +91,7 @@ export class Canvas2DRenderingBackend implements RenderingBackend {
     this._offscreenCtx.restore();
     this._ctx.save();
     this._ctx.setTransform(1, 0, 0, 1, 0, 0);
-    this._ctx.fillStyle = '#ffffff';
+    this._ctx.fillStyle = COLOR.CANVAS_BG;
     this._ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this._ctx.drawImage(this._offscreenCanvas, 0, 0);
     this._ctx.restore();

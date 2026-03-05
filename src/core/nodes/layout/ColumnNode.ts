@@ -8,6 +8,7 @@ import {
 } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { LAYOUT } from '../../types/constants';
 
 export class ColumnNode extends RenderNode {
   public mainAxisAlignment: MainAxisAlignment = MainAxisAlignment.Start;
@@ -19,7 +20,7 @@ export class ColumnNode extends RenderNode {
 
   performLayout(constraints: BoxConstraints): Size {
     if (!BoxConstraintsHelper.isValid(constraints)) {
-      return { width: 100, height: 100 };
+      return { width: LAYOUT.FALLBACK_WIDTH, height: LAYOUT.FALLBACK_HEIGHT };
     }
 
     // 优先使用 preferredWidth，否则从约束确定

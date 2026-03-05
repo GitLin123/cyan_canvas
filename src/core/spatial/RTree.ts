@@ -1,5 +1,6 @@
 import type { RenderNode } from '../nodes/base/RenderNode';
 import type { AABB } from '../types/geometry';
+import { SPATIAL_INDEX } from '../types/constants';
 
 export type { AABB };
 
@@ -14,7 +15,7 @@ interface RTreeNode {
   leaves: LeafEntry[] | null; // non-null only at leaf level
 }
 
-const M = 16; // fan-out factor
+const M = SPATIAL_INDEX.RTREE_M; // fan-out factor
 
 function unionBBox(items: { bbox: AABB }[]): AABB {
   let minX = Infinity,
@@ -87,7 +88,7 @@ export class RTree {
   private _root: RTreeNode | null = null;
   private _pendingInserts: LeafEntry[] = [];
   private _pendingRemoves: Set<RenderNode> = new Set();
-  private _rebuildThreshold = 50; // 累积50个变更后重建
+  private _rebuildThreshold = SPATIAL_INDEX.RTREE_REBUILD_THRESHOLD; // 累积变更后重建
 
   build(entries: { node: RenderNode; bbox: AABB }[]) {
     if (entries.length === 0) {

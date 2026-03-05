@@ -1,19 +1,20 @@
 import { ShapeNode } from './base/ShapeNode';
 import type { PaintingContext } from '../backend/PaintingContext';
+import { ARROW } from '../types/constants';
 
 export class ArrowNode extends ShapeNode {
   // 覆盖默认尺寸
   protected getDefaultWidth(): number {
-    return 120;
+    return ARROW.WIDTH;
   }
   protected getDefaultHeight(): number {
-    return 60;
+    return ARROW.HEIGHT;
   }
 
   paintSelf(ctx: PaintingContext): void {
     const w = this.width;
     const h = this.height;
-    const headW = Math.min(w * 0.35, h * 1.2);
+    const headW = Math.min(w * ARROW.HEAD_WIDTH_RATIO, h * ARROW.HEAD_HEIGHT_RATIO);
     const bodyW = Math.max(0, w - headW);
 
     ctx.save();

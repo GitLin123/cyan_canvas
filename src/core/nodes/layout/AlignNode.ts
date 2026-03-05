@@ -8,6 +8,7 @@ import { SingleChildLayoutNode } from '../base/SingleChildLayoutNode';
 import { BoxConstraints, BoxConstraintsHelper, Alignment } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { LAYOUT } from '../../types/constants';
 
 export class AlignNode extends SingleChildLayoutNode {
   public alignment: Alignment = Alignment.Center;
@@ -72,7 +73,7 @@ export class AlignNode extends SingleChildLayoutNode {
 
   performLayout(constraints: BoxConstraints): Size {
     if (!BoxConstraintsHelper.isValid(constraints)) {
-      return { width: 100, height: 100 };
+      return { width: LAYOUT.FALLBACK_WIDTH, height: LAYOUT.FALLBACK_HEIGHT };
     }
 
     // === 确定 Align 的最终尺寸 ===

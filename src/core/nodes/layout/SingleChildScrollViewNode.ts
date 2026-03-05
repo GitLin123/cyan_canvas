@@ -9,6 +9,7 @@ import { BoxConstraints, BoxConstraintsHelper, Direction } from '../../types/con
 import { Size } from '../../types/node';
 import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { LAYOUT } from '../../types/constants';
 
 export class SingleChildScrollViewNode extends RenderNode {
   public direction: Direction = Direction.vertical; // 滚动方向，默认为竖直滚动
@@ -20,7 +21,7 @@ export class SingleChildScrollViewNode extends RenderNode {
 
   performLayout(constraints: BoxConstraints): Size {
     if (!BoxConstraintsHelper.isValid(constraints)) {
-      return { width: 100, height: 100 };
+      return { width: LAYOUT.FALLBACK_WIDTH, height: LAYOUT.FALLBACK_HEIGHT };
     }
 
     // === 确定视口大小 ===
@@ -36,7 +37,10 @@ export class SingleChildScrollViewNode extends RenderNode {
     if (this.children.length > 0) {
       const child = this.children[0];
 
-      if (this.direction === Direction.vertical) {
+      // 支持字符串和枚举两种形式
+      const isVertical = this.direction === Direction.vertical;
+
+      if (isVertical) {
         // 竖直滚动：子项宽度受约束，高度无界
         child.layout({
           minWidth: 0,
@@ -78,6 +82,7 @@ export class SingleChildScrollViewNode extends RenderNode {
   // 视口始终需要裁剪，即使 scrollOffset 为 0
   paint(ctx: PaintingContext) {
     if (!this.visible || this.alpha <= 0) return;
+    this._needsPaint = false;
     ctx.save();
     ctx.translate(this._x + this._offsetX, this._y + this._offsetY);
     ctx.beginPath();
@@ -112,7 +117,10 @@ export class SingleChildScrollViewNode extends RenderNode {
 
     const child = this.children[0];
 
-    if (this.direction === Direction.vertical) {
+    // 支持字符串和枚举两种形式
+    const isVertical = this.direction === Direction.vertical;
+
+    if (isVertical) {
       // 竖直滚动：限制 Y 偏移范围
       const maxScroll = Math.max(0, child.height - this.height);
       this.scrollOffsetY = Math.max(0, Math.min(this.scrollOffsetY + deltaY, maxScroll));
@@ -121,7 +129,10 @@ export class SingleChildScrollViewNode extends RenderNode {
       const maxScroll = Math.max(0, child.width - this.width);
       this.scrollOffsetX = Math.max(0, Math.min(this.scrollOffsetX + deltaX, maxScroll));
     }
-
+    // 滚动不改变节点 bounds，脏区域管理器检测不到变化，需要强制全量重绘
+    if (this._owner) {
+      this._owner.dirtyRegionManager.markFullRepaint();
+    }
     this.markNeedsPaint();
   }
 

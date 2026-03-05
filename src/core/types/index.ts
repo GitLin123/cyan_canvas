@@ -10,3 +10,4 @@ export * from './animation';
 export * from './base-props';
 export * from './node';
 export * from './engine';
+export * from './constants';

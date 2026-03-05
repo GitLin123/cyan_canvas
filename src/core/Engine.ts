@@ -3,6 +3,7 @@ import { RenderNode } from './nodes/base/RenderNode';
 import { PipelineOwner } from './PipelineOwner';
 import { EventManager } from './events/index';
 import { SpatialIndex } from './spatial/SpatialIndex';
+import { Monitor } from './monitor';
 import type { RenderingBackend } from './backend/RenderingBackend';
 import { Canvas2DRenderingBackend } from './backend/Canvas2DRenderingBackend';
 import { WebGLRenderingBackend } from './backend/webgl/WebGLRenderingBackend';
@@ -19,12 +20,14 @@ export class CyanEngine {
   private _root: RenderNode | null = null;
   private _needsFrame: boolean = true;
   private _frameCount: number = 0;
+  private _hasInitialLayout: boolean = false;
   private eventManager: EventManager;
   public readonly spatialIndex = new SpatialIndex();
   public debugDirtyRegions: boolean = false;
   public debugStats = { dirtyNodeCount: 0, dirtyRegionCount: 0 };
   private _resizeHandler: () => void = () => {};
   private _resizeListeners: Set<(width: number, height: number) => void> = new Set();
+  private _cachedNodeCount: number = 0;
 
   /** 订阅窗口 resize 事件，返回取消订阅函数 */
   public onResize(listener: (width: number, height: number) => void): () => void {
@@ -41,6 +44,12 @@ export class CyanEngine {
     if (node) {
       node.parent = null;
       node.attach(this.pipelineOwner);
+      // 计算并缓存节点总数
+      this._cachedNodeCount = this._countNodes(node);
+      // 重置初始布局标志
+      this._hasInitialLayout = false;
+    } else {
+      this._cachedNodeCount = 0;
     }
     this.pipelineOwner.dirtyRegionManager.markFullRepaint();
     this._needsFrame = true;
@@ -144,22 +153,35 @@ export class CyanEngine {
   /**
    * 核心管线：Update -> Layout -> Paint（支持脏矩形局部重绘）
    */
-  private runPipeline(delta: number) {
+  private runPipeline(_delta: number) {
     if (!this.root) return;
     const pr = window.devicePixelRatio || 1;
     const width = this.canvas.width / pr;
     const height = this.canvas.height / pr;
 
-    // 1. 布局
-    this.root.layout({
-      maxWidth: width,
-      minWidth: 0,
-      maxHeight: height,
-      minHeight: 0,
-    });
+    // 性能监控：记录各阶段时间
+    let layoutTime = 0;
+    let paintTime = 0;
+    let compositeTime = 0;
 
-    // 2. 重建空间索引（更新 worldX/worldY）
-    this.spatialIndex.rebuild(this.root);
+    // 1. 布局（仅在需要时执行，或首次渲染）
+    const layoutStart = performance.now();
+    const needsLayout = this.pipelineOwner.needsLayout || !this._hasInitialLayout;
+    if (needsLayout) {
+      this.root.layout({
+        maxWidth: width,
+        minWidth: 0,
+        maxHeight: height,
+        minHeight: 0,
+      });
+      this._hasInitialLayout = true;
+    }
+    layoutTime = performance.now() - layoutStart;
+
+    // 2. 重建空间索引（仅在布局后更新）
+    if (needsLayout) {
+      this.spatialIndex.rebuild(this.root);
+    }
 
     // 3. 收集脏节点的新 bounds，然后获取合并后的脏矩形
     this.debugStats.dirtyNodeCount = this.pipelineOwner.dirtyNodeCount;
@@ -171,6 +193,8 @@ export class CyanEngine {
 
     const paintCtx = this.backend.getPaintingContext();
 
+    // 4. 绘制
+    const paintStart = performance.now();
     if (dirtyRegions === null) {
       // --- 全量重绘 ---
       this.backend.beginFullFrame(width, height, pr);
@@ -180,10 +204,37 @@ export class CyanEngine {
       // --- 局部重绘 ---
       this.backend.beginDirtyFrame(dirtyRegions, width, height, pr);
       this.root.paint(paintCtx);
+      const compositeStart = performance.now();
       this.backend.compositeDirtyRegions(dirtyRegions, pr);
+      compositeTime = performance.now() - compositeStart;
     }
+    paintTime = performance.now() - paintStart;
 
     this._needsFrame = false;
+
+    // 记录性能数据
+    Monitor.recordFrame({
+      layoutTime,
+      paintTime,
+      compositeTime,
+      dirtyNodeCount: this.debugStats.dirtyNodeCount,
+      dirtyRegionCount: this.debugStats.dirtyRegionCount,
+      nodeCount: this._cachedNodeCount,
+    });
+  }
+
+  /**
+   * 计算节点总数
+   */
+  private _countNodes(node: RenderNode | null): number {
+    if (!node) return 0;
+    let count = 1;
+    if ('children' in node && Array.isArray((node as any).children)) {
+      for (const child of (node as any).children) {
+        count += this._countNodes(child);
+      }
+    }
+    return count;
   }
 
   public markNeedsPaint(_node?: RenderNode) {

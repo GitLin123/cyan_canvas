@@ -4,6 +4,7 @@ import { GestureBinding } from './GestureBinding';
 import { GestureDetectorNode } from '../nodes/GestureDetectorNode';
 import type { SpatialIndex } from '../spatial/SpatialIndex';
 import type { CyanKeyboardEvent } from '../types/events';
+import { EVENT } from '../types/constants';
 
 export class EventManager {
   // 记录当前 hover 状态的节点
@@ -348,7 +349,7 @@ export class EventManager {
     );
   }
 
-  private static readonly KEYBOARD_SCROLL_AMOUNT = 15;
+  private static readonly KEYBOARD_SCROLL_AMOUNT = EVENT.KEYBOARD_SCROLL_AMOUNT;
 
   /** 处理键盘滚动，返回 true 表示已消费该事件 */
   private handleKeyboardScroll(e: KeyboardEvent): boolean {
@@ -357,7 +358,7 @@ export class EventManager {
       ArrowDown: [0, EventManager.KEYBOARD_SCROLL_AMOUNT],
       ArrowLeft: [-EventManager.KEYBOARD_SCROLL_AMOUNT, 0],
       ArrowRight: [EventManager.KEYBOARD_SCROLL_AMOUNT, 0],
-      ' ': [0, EventManager.KEYBOARD_SCROLL_AMOUNT * 10],
+      ' ': [0, EventManager.KEYBOARD_SCROLL_AMOUNT * EVENT.SPACE_KEY_SCROLL_MULTIPLIER],
     };
     const delta = scrollKeys[e.key];
     if (!delta) return false;

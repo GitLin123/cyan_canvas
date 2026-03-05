@@ -2,19 +2,20 @@ import { RenderNode } from './base/RenderNode';
 import { BoxConstraints, BoxFit, ImageRepeat, Alignment, BlendMode, ColorFilter } from '../types/container';
 import { Size } from '../types/node';
 import type { PaintingContext } from '../backend/PaintingContext';
+import { IMAGE, COLOR } from '../types/constants';
 
 export class ImageNode extends RenderNode {
   private _src: string = '';
   private _image: HTMLImageElement | null = null;
   private _isLoaded: boolean = false;
   private _boxFit: BoxFit = BoxFit.Contain;
-  private _opacity: number = 1;
+  private _opacity: number = IMAGE.OPACITY;
   private _repeat: ImageRepeat = ImageRepeat.NoRepeat;
   private _alignment: Alignment = Alignment.Center;
   private _blendMode: BlendMode = BlendMode.Normal;
   private _colorFilter: ColorFilter | null = null;
   private _gaplessPlayback: boolean = false;
-  private _filterQuality: 'low' | 'medium' | 'high' = 'medium';
+  private _filterQuality: 'low' | 'medium' | 'high' = IMAGE.FILTER_QUALITY;
   private _semanticLabel: string = '';
   private _matchTextDirection: boolean = false;
 
@@ -95,8 +96,8 @@ export class ImageNode extends RenderNode {
     img.onload = () => {
       this._image = img;
       this._isLoaded = true;
+      // 图片加载完成后只需要一次布局+绘制
       this.markNeedsLayout();
-      this.markNeedsPaint();
     };
     img.onerror = () => {
       console.error(`Failed to load image: ${src}`);
@@ -190,9 +191,9 @@ export class ImageNode extends RenderNode {
   }
 
   performLayout(constraints: BoxConstraints): Size {
-    // 使用显式设置的尺寸或约束
-    let width = this.width || (this._isLoaded ? this._image!.width : 100);
-    let height = this.height || (this._isLoaded ? this._image!.height : 100);
+    // 优先使用显式设置的 preferredWidth/Height，其次用图片原始尺寸
+    let width = this._preferredWidth ?? (this._isLoaded ? this._image!.width : IMAGE.PLACEHOLDER_WIDTH);
+    let height = this._preferredHeight ?? (this._isLoaded ? this._image!.height : IMAGE.PLACEHOLDER_HEIGHT);
 
     // 应用约束限制
     width = Math.max(constraints.minWidth, Math.min(constraints.maxWidth, width));
@@ -215,9 +216,9 @@ export class ImageNode extends RenderNode {
       ctx.drawImage(this._image, 0, 0, this._image.width, this._image.height, offsetX, offsetY, drawWidth, drawHeight);
     } else {
       // 加载中的占位图
-      ctx.fillStyle = '#e0e0e0';
+      ctx.fillStyle = COLOR.PLACEHOLDER_BG;
       ctx.fillRect(0, 0, this.width, this.height);
-      ctx.strokeStyle = '#bdbdbd';
+      ctx.strokeStyle = COLOR.PLACEHOLDER_BORDER;
       ctx.beginPath();
       ctx.moveTo(0, 0);
       ctx.lineTo(this.width, this.height);

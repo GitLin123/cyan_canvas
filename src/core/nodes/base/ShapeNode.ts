@@ -2,6 +2,7 @@ import { RenderNode } from './RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { SHAPE, COLOR } from '../../types/constants';
 
 /**
  * 形状节点基类
@@ -9,7 +10,7 @@ import type { PaintingContext } from '../../backend/PaintingContext';
  */
 export abstract class ShapeNode extends RenderNode {
   // 共同属性
-  protected _color: string = 'white';
+  protected _color: string = COLOR.SHAPE;
   protected _prefWidth?: number;
   protected _prefHeight?: number;
 
@@ -37,10 +38,10 @@ export abstract class ShapeNode extends RenderNode {
 
   // 获取默认尺寸（子类可覆盖）
   protected getDefaultWidth(): number {
-    return 100;
+    return SHAPE.WIDTH;
   }
   protected getDefaultHeight(): number {
-    return 100;
+    return SHAPE.HEIGHT;
   }
 
   // 通用的 performLayout 实现

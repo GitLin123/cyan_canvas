@@ -11,12 +11,13 @@ import {
 } from '../types/container';
 import { RenderNode } from './base/RenderNode';
 import type { PaintingContext } from '../backend/PaintingContext';
+import { TEXT, COLOR } from '../types/constants';
 
 export class TextNode extends RenderNode {
   private _text: string = '';
-  private _fontSize: number = 16;
-  private _color: string = 'black';
-  private _fontFamily: string = 'sans-serif';
+  private _fontSize: number = TEXT.FONT_SIZE;
+  private _color: string = COLOR.TEXT;
+  private _fontFamily: string = TEXT.FONT_FAMILY;
   private _textAlign: TextAlign = TextAlign.Left;
   private _textDirection: TextDirection = TextDirection.Ltr;
   private _fontWeight: FontWeight = FontWeight.W400;
@@ -26,13 +27,13 @@ export class TextNode extends RenderNode {
   private _opacity: number = 1;
   private _letterSpacing: number = 0;
   private _wordSpacing: number = 0;
-  private _lineHeight: number = 1.2;
-  private _heightFactor: number = 1;
+  private _lineHeight: number = TEXT.LINE_HEIGHT;
+  private _heightFactor: number = TEXT.HEIGHT_FACTOR;
   private _decoration: TextDecoration = TextDecoration.None;
-  private _decorationColor: string = 'black';
-  private _decorationThickness: number = 1;
+  private _decorationColor: string = COLOR.TEXT;
+  private _decorationThickness: number = TEXT.DECORATION_THICKNESS;
   private _shadows: TextShadow[] = [];
-  private _background: string = 'transparent';
+  private _background: string = COLOR.TRANSPARENT;
   private _selectable: boolean = false;
   private _softWrap: boolean = true;
   private _semanticLabel: string = '';
@@ -51,7 +52,22 @@ export class TextNode extends RenderNode {
   }
   public set text(v: string) {
     if (this._text === v) return;
+    const oldText = this._text;
     this._text = v;
+
+    // 如果已经完成过布局，检查文本尺寸是否真的变化
+    if (this._width > 0 && oldText) {
+      const oldSize = this._measureText(oldText);
+      const newSize = this._measureText(v);
+
+      // 如果尺寸没变化，只需要重绘
+      if (oldSize.width === newSize.width && oldSize.height === newSize.height) {
+        this.markNeedsPaint();
+        return;
+      }
+    }
+
+    // 否则需要重新布局
     this.markNeedsLayout();
   }
 
@@ -81,13 +97,37 @@ export class TextNode extends RenderNode {
 
   public set fontWeight(v: FontWeight) {
     if (this._fontWeight === v) return;
+    const oldWeight = this._fontWeight;
     this._fontWeight = v;
+
+    // 优化：只有在已布局且尺寸真的变化时才重新布局
+    // 使用 _width > 0 判断是否已完成布局
+    if (this._width > 0 && this._text) {
+      const oldSize = this._measureTextWithFont(this._text, oldWeight, this._fontStyle);
+      const newSize = this._measureTextWithFont(this._text, v, this._fontStyle);
+      if (Math.abs(oldSize.width - newSize.width) < 1 && Math.abs(oldSize.height - newSize.height) < 1) {
+        this.markNeedsPaint();
+        return;
+      }
+    }
     this.markNeedsLayout();
   }
 
   public set fontStyle(v: FontStyle) {
     if (this._fontStyle === v) return;
+    const oldStyle = this._fontStyle;
     this._fontStyle = v;
+
+    // 优化：只有在已布局且尺寸真的变化时才重新布局
+    // 使用 _width > 0 判断是否已完成布局
+    if (this._width > 0 && this._text) {
+      const oldSize = this._measureTextWithFont(this._text, this._fontWeight, oldStyle);
+      const newSize = this._measureTextWithFont(this._text, this._fontWeight, v);
+      if (Math.abs(oldSize.width - newSize.width) < 1 && Math.abs(oldSize.height - newSize.height) < 1) {
+        this.markNeedsPaint();
+        return;
+      }
+    }
     this.markNeedsLayout();
   }
 
@@ -178,6 +218,25 @@ export class TextNode extends RenderNode {
 
   private getFontString() {
     return `${this._fontStyle} ${this._fontWeight} ${this._fontSize}px ${this._fontFamily}`;
+  }
+
+  // 辅助方法：测量指定字体样式的文本尺寸
+  private _measureTextWithFont(text: string, fontWeight: FontWeight, fontStyle: FontStyle): Size {
+    if (!TextNode._measureCtx) {
+      TextNode._measureCtx = document.createElement('canvas').getContext('2d');
+    }
+    const ctx = TextNode._measureCtx!;
+    ctx.font = `${fontStyle} ${fontWeight} ${this._fontSize}px ${this._fontFamily}`;
+    const metrics = ctx.measureText(text);
+    return {
+      width: metrics.width,
+      height: this._fontSize * this._lineHeight,
+    };
+  }
+
+  // 辅助方法：测量当前字体样式的文本尺寸
+  private _measureText(text: string): Size {
+    return this._measureTextWithFont(text, this._fontWeight, this._fontStyle);
   }
 
   performLayout(constraints: BoxConstraints): Size {
@@ -274,7 +333,7 @@ export class TextNode extends RenderNode {
     ctx.globalAlpha = this._opacity;
     ctx.textBaseline = 'top';
 
-    const maxWidth = this.width || 300;
+    const maxWidth = this.width || TEXT.MAX_WIDTH;
     const lines = this.splitLines(ctx, this._text, maxWidth);
 
     // 应用 maxLines 限制

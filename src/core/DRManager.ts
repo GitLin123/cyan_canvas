@@ -7,9 +7,11 @@
  */
 
 import type { AABB } from './types/geometry';
-const MERGE_THRESHOLD = 64; // 两个矩形间距小于此值时合并（避免过多小矩形）
-const QUADTREE_CAPACITY = 8; // 四叉树节点容量
-const QUADTREE_MAX_DEPTH = 8; // 四叉树最大深度，防止重叠区域导致无限递归
+import { DIRTY_REGION } from './types/constants';
+
+const MERGE_THRESHOLD = DIRTY_REGION.MERGE_THRESHOLD;
+const QUADTREE_CAPACITY = DIRTY_REGION.QUADTREE_CAPACITY;
+const QUADTREE_MAX_DEPTH = DIRTY_REGION.QUADTREE_MAX_DEPTH;
 
 interface QuadTreeNode {
   bounds: AABB;
@@ -138,15 +140,17 @@ export class DRManager {
       }
     }
 
-    //如果脏区域覆盖面积超过视口 95%，退化为全量重绘（暂时禁用以展示效果）
+    //如果脏区域覆盖面积超过视口阈值，退化为全量重绘（暂时禁用以展示效果）
     const viewportArea = viewportWidth * viewportHeight;
     let dirtyArea = 0;
     for (const r of clipped) {
       dirtyArea += (r.maxX - r.minX) * (r.maxY - r.minY);
     }
     const coverage = dirtyArea / viewportArea;
-    if (coverage > 0.95) {
-      console.log(`[DirtyRect] Coverage ${(coverage * 100).toFixed(1)}% > 95%, fallback to full repaint`);
+    if (coverage > DIRTY_REGION.FULL_REPAINT_COVERAGE_THRESHOLD) {
+      if (typeof window !== 'undefined' && (window as any).__DEBUG_DIRTY_RECT) {
+        console.log(`[DirtyRect] Coverage ${(coverage * 100).toFixed(1)}% > ${DIRTY_REGION.FULL_REPAINT_COVERAGE_THRESHOLD * 100}%, fallback to full repaint. Dirty regions: ${clipped.length}`);
+      }
       return null;
     }
 
