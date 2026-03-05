@@ -8,6 +8,7 @@ import { RenderNode } from '../base/RenderNode';
 import { BoxConstraints } from '../../types/container';
 import { Size } from '../../types/node';
 import type { PaintingContext } from '../../backend/PaintingContext';
+import { HitTestResult, HitTestEntry } from '../../events/HitTestResult';
 
 export class PositionedNode extends RenderNode {
   private _top?: number;
@@ -117,5 +118,19 @@ export class PositionedNode extends RenderNode {
 
   paintSelf(ctx: PaintingContext): void {
     // Positioned 本身不绘制
+  }
+
+  // Positioned 作为 Stack 的定位容器，应当对命中测试透明：
+  // 仅当其子节点命中时才返回 true，避免整屏拦截兄弟节点事件。
+  hitTest(result: HitTestResult, localX: number, localY: number): boolean {
+    if (!this.visible || this.children.length === 0) return false;
+
+    const child = this.children[0];
+    const childX = localX - child.x - child.offsetX;
+    const childY = localY - child.y - child.offsetY;
+    if (!child.hitTest(result, childX, childY)) return false;
+
+    result.add(new HitTestEntry(this, localX, localY));
+    return true;
   }
 }

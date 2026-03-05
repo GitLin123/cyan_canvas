@@ -1,16 +1,21 @@
 import { RenderNode } from '../nodes/base/RenderNode';
 import { RTree, type AABB } from './RTree';
 import { HitTestResult, HitTestEntry } from '../events/HitTestResult';
+import { SPATIAL_INDEX } from '../types/constants';
 
 export class SpatialIndex {
   private _tree = new RTree();
   private _ready = false;
   private _hitTestCache = new Map<string, HitTestResult>();
   private _cacheVersion = 0;
+  private _paintOrder = new Map<RenderNode, number>();
+  private _paintSeq = 0;
 
   rebuild(root: RenderNode) {
     root.updateWorldBounds();
     const entries: { node: RenderNode; bbox: AABB }[] = [];
+    this._paintOrder.clear();
+    this._paintSeq = 0;
     this._collect(root, entries);
     this._tree.build(entries);
     this._ready = true;
@@ -19,13 +24,14 @@ export class SpatialIndex {
 
   private _invalidateCache() {
     this._cacheVersion++;
-    if (this._hitTestCache.size > 1000) {
+    if (this._hitTestCache.size > SPATIAL_INDEX.HIT_TEST_CACHE_SIZE) {
       this._hitTestCache.clear();
     }
   }
 
   private _collect(node: RenderNode, out: { node: RenderNode; bbox: AABB }[]) {
     if (!node.visible) return;
+    this._paintOrder.set(node, this._paintSeq++);
     out.push({
       node,
       bbox: {
@@ -36,6 +42,44 @@ export class SpatialIndex {
       },
     });
     for (const child of node.children) this._collect(child, out);
+  }
+
+  private _sortCandidates(candidates: RenderNode[]): RenderNode[] {
+    return candidates.sort((a, b) => {
+      const ao = this._paintOrder.get(a) ?? -1;
+      const bo = this._paintOrder.get(b) ?? -1;
+      if (ao !== bo) return bo - ao;
+      return b.depth - a.depth;
+    });
+  }
+
+  private _resolveHitPath(candidates: RenderNode[], x: number, y: number): HitTestResult {
+    for (const candidate of candidates) {
+      const probe = new HitTestResult();
+      const localX = x - candidate._worldX;
+      const localY = y - candidate._worldY;
+
+      // 候选先经过真实 hitTest，过滤仅 bbox 命中但实际不命中的节点
+      if (!candidate.hitTest(probe, localX, localY) || probe.path.length === 0) {
+        continue;
+      }
+
+      const result = new HitTestResult();
+      for (const entry of probe.path) {
+        result.add(new HitTestEntry(entry.target, entry.localX, entry.localY));
+      }
+
+      // 补齐 candidate 以上的父链（probe 只包含 candidate 子树内路径）
+      let parent = candidate.parent;
+      while (parent) {
+        result.add(new HitTestEntry(parent, x - parent._worldX, y - parent._worldY));
+        parent = parent.parent;
+      }
+
+      return result;
+    }
+
+    return new HitTestResult();
   }
 
   hitTest(x: number, y: number): HitTestResult {
@@ -49,23 +93,10 @@ export class SpatialIndex {
     const candidates = this._tree.query(x, y);
     if (candidates.length === 0) return result;
 
-    // 按深度降序（最深节点优先）
-    candidates.sort((a, b) => b.depth - a.depth);
-
-    // 取最深节点，沿 parent chain 构建命中路径
-    const deepest = candidates[0];
-    const path: RenderNode[] = [];
-    let cur: RenderNode | null = deepest;
-    while (cur) {
-      path.push(cur);
-      cur = cur.parent;
-    }
-
-    // path 已经是从叶到根，逐个添加并计算局部坐标
-    for (const node of path) {
-      const localX = x - node._worldX;
-      const localY = y - node._worldY;
-      result.add(new HitTestEntry(node, localX, localY));
+    const sortedCandidates = this._sortCandidates(candidates);
+    const resolved = this._resolveHitPath(sortedCandidates, x, y);
+    for (const entry of resolved.path) {
+      result.add(entry);
     }
 
     this._hitTestCache.set(cacheKey, result);
@@ -79,14 +110,7 @@ export class SpatialIndex {
   }
 
   hitTestFirst(x: number, y: number): RenderNode | null {
-    if (!this._ready) return null;
-    const candidates = this._tree.query(x, y);
-    if (candidates.length === 0) return null;
-    // 返回最深节点
-    let deepest = candidates[0];
-    for (let i = 1; i < candidates.length; i++) {
-      if (candidates[i].depth > deepest.depth) deepest = candidates[i];
-    }
-    return deepest;
+    const result = this.hitTest(x, y);
+    return result.path.length > 0 ? result.path[0].target : null;
   }
 }
