@@ -92,7 +92,11 @@ export class ImageNode extends RenderNode {
 
   private loadImage(src: string) {
     const img = new Image();
-    img.src = src;
+
+    if (!src.startsWith('data:') && !src.startsWith('blob:')) {
+      img.crossOrigin = 'anonymous';
+    }
+
     img.onload = () => {
       this._image = img;
       this._isLoaded = true;
@@ -102,6 +106,7 @@ export class ImageNode extends RenderNode {
     img.onerror = () => {
       console.error(`Failed to load image: ${src}`);
     };
+    img.src = src;
   }
 
   /**

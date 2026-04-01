@@ -28,7 +28,7 @@ void main() {
 }
 `;
 
-// OpenGL ES 2.0 片元着色器
+// 片元着色器
 const TEXTURE_FRAG = `
 precision mediump float;
 uniform sampler2D u_texture;
@@ -64,6 +64,7 @@ export class ShaderManager {
     );
   }
 
+  // 创建并编译着色器
   private _compile(type: number, source: string): WebGLShader {
     const gl = this.gl;
     const shader = gl.createShader(type)!;
@@ -77,6 +78,7 @@ export class ShaderManager {
     return shader;
   }
 
+  // 创建并链接程序
   private _createProgram(vertSrc: string, fragSrc: string, attrNames: string[], uniformNames: string[]): ShaderProgram {
     const gl = this.gl;
     const vert = this._compile(gl.VERTEX_SHADER, vertSrc);

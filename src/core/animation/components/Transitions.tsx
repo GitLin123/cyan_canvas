@@ -14,11 +14,7 @@ import { ContainerProps } from '../../types/node';
  *
  * 根据动画值改变透明度
  */
-/**
- * FadeTransition - 淡入淡出转场
- *
- * 根据动画值改变透明度
- */
+
 export const FadeTransition: React.FC<
   Omit<ContainerProps, 'opacity'> & {
     animation: Animation;
@@ -91,19 +87,19 @@ export const SlideTransition: React.FC<
   children,
   ...props
 }) => (
-  <AnimatedBuilder
-    animation={animation}
-    builder={(value) => {
-      const x = beginOffset.x + (endOffset.x - beginOffset.x) * value;
-      const y = beginOffset.y + (endOffset.y - beginOffset.y) * value;
-      return (
-        <Container x={x} y={y} {...props}>
-          {children}
-        </Container>
-      );
-    }}
-  />
-);
+    <AnimatedBuilder
+      animation={animation}
+      builder={(value) => {
+        const x = beginOffset.x + (endOffset.x - beginOffset.x) * value;
+        const y = beginOffset.y + (endOffset.y - beginOffset.y) * value;
+        return (
+          <Container x={x} y={y} {...props}>
+            {children}
+          </Container>
+        );
+      }}
+    />
+  );
 
 SlideTransition.displayName = 'SlideTransition';
 

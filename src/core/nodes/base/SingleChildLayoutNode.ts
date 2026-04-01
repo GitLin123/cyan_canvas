@@ -63,6 +63,6 @@ export abstract class SingleChildLayoutNode extends RenderNode {
     return this.children.length > 0 ? this.children[0] : null;
   }
 
-  // 抽象方法 - 子类必须实现
+  // 子类需实现的布局方法
   abstract performLayout(constraints: BoxConstraints): Size;
 }

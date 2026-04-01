@@ -18,6 +18,7 @@ export class CyanEngine {
   public backend: RenderingBackend;
 
   private _root: RenderNode | null = null;
+  // 渲染循环相关
   private _needsFrame: boolean = true;
   private _frameCount: number = 0;
   private _hasInitialLayout: boolean = false;
@@ -25,7 +26,7 @@ export class CyanEngine {
   public readonly spatialIndex = new SpatialIndex();
   public debugDirtyRegions: boolean = false;
   public debugStats = { dirtyNodeCount: 0, dirtyRegionCount: 0 };
-  private _resizeHandler: () => void = () => {};
+  private _resizeHandler: () => void = () => { };
   private _resizeListeners: Set<(width: number, height: number) => void> = new Set();
   private _cachedNodeCount: number = 0;
 
@@ -57,7 +58,7 @@ export class CyanEngine {
 
   constructor(options: EngineOptions) {
     this.canvas = this._resolveCanvas(options);
-    this.backend = this._createBackend(options.renderer || 'canvas2d');
+    this.backend = this._createBackend(options.renderer || 'webgl');
 
     this.pipelineOwner = new PipelineOwner(() => {
       this._needsFrame = true;

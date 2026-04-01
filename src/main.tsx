@@ -7,6 +7,7 @@ const engine = (window as any).__CYAN_ENGINE__ || new CyanEngine({
   containerId: 'root',
   width: window.innerWidth,
   height: window.innerHeight,
+  renderer: 'canvas2d'
 });
 (window as any).__CYAN_ENGINE__ = engine;
 

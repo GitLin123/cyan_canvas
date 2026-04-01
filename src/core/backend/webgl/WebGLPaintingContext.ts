@@ -101,7 +101,10 @@ export class WebGLPaintingContext implements PaintingContext {
   private _textureCache = new Map<CanvasImageSource, WebGLTexture>();
 
   // 文本纹理缓存：key = "font|color|baseline|text"
-  private _textTexCache = new Map<string, { tex: WebGLTexture; texW: number; texH: number; cssW: number; cssH: number; canvasW: number; canvasH: number }>();
+  private _textTexCache = new Map<
+    string,
+    { tex: WebGLTexture; texW: number; texH: number; cssW: number; cssH: number; canvasW: number; canvasH: number }
+  >();
   private _textTexCacheMaxSize = 512;
 
   // 预分配的 Float32Array 缓冲区，避免每次 draw call 都 new
@@ -127,10 +130,22 @@ export class WebGLPaintingContext implements PaintingContext {
     this._state = defaultState();
     this._clipDepth = 0;
     const m = this._projMatrix;
-    m[0] = 2 / width; m[1] = 0;           m[2] = 0;  m[3] = 0;
-    m[4] = 0;          m[5] = -2 / height; m[6] = 0;  m[7] = 0;
-    m[8] = 0;          m[9] = 0;           m[10] = 1; m[11] = 0;
-    m[12] = -1;        m[13] = 1;          m[14] = 0; m[15] = 1;
+    m[0] = 2 / width;
+    m[1] = 0;
+    m[2] = 0;
+    m[3] = 0;
+    m[4] = 0;
+    m[5] = -2 / height;
+    m[6] = 0;
+    m[7] = 0;
+    m[8] = 0;
+    m[9] = 0;
+    m[10] = 1;
+    m[11] = 0;
+    m[12] = -1;
+    m[13] = 1;
+    m[14] = 0;
+    m[15] = 1;
   }
 
   // === 状态管理 ===
@@ -156,13 +171,13 @@ export class WebGLPaintingContext implements PaintingContext {
         } else {
           // 还有外层 clip，恢复到外层的 stencil 值
           // 先把当前层的 stencil 区域递减回去
-          gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
+          gl.stencilFunc(gl.ALWAYS, 0, 0xff);
           gl.stencilOp(gl.KEEP, gl.KEEP, gl.DECR);
           gl.colorMask(false, false, false, false);
           // 重绘当前 clip 路径到 stencil（递减）
           // 简化：直接设置 stencilFunc 为外层深度
           gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-          gl.stencilFunc(gl.LEQUAL, this._clipDepth, 0xFF);
+          gl.stencilFunc(gl.EQUAL, this._clipDepth, 0xff);
           gl.colorMask(true, true, true, true);
         }
       }
@@ -170,21 +185,31 @@ export class WebGLPaintingContext implements PaintingContext {
   }
 
   // === 变换 ===
-  translate(x: number, y: number): void { this._matrix.translate(x, y); }
-  rotate(angle: number): void { this._matrix.rotate(angle); }
-  scale(x: number, y: number): void { this._matrix.scale(x, y); }
+  translate(x: number, y: number): void {
+    this._matrix.translate(x, y);
+  }
+  rotate(angle: number): void {
+    this._matrix.rotate(angle);
+  }
+  scale(x: number, y: number): void {
+    this._matrix.scale(x, y);
+  }
   setTransform(a: number, b: number, c: number, d: number, e: number, f: number): void {
     this._matrix.setTransform(a, b, c, d, e, f);
   }
 
   // === 路径操作 ===
-  beginPath(): void { this._pathPoints = []; }
+  beginPath(): void {
+    this._pathPoints = [];
+  }
   moveTo(x: number, y: number): void {
     this._pathStartX = x;
     this._pathStartY = y;
     this._pathPoints.push(x, y);
   }
-  lineTo(x: number, y: number): void { this._pathPoints.push(x, y); }
+  lineTo(x: number, y: number): void {
+    this._pathPoints.push(x, y);
+  }
   closePath(): void {
     if (this._pathPoints.length >= 2) {
       this._pathPoints.push(this._pathStartX, this._pathStartY);
@@ -192,7 +217,7 @@ export class WebGLPaintingContext implements PaintingContext {
   }
 
   arc(x: number, y: number, radius: number, startAngle: number, endAngle: number, ccw?: boolean): void {
-    const segments = Math.max(16, Math.ceil(Math.abs(endAngle - startAngle) / (Math.PI * 2) * 64));
+    const segments = Math.max(16, Math.ceil((Math.abs(endAngle - startAngle) / (Math.PI * 2)) * 64));
     let start = startAngle;
     let end = endAngle;
     if (ccw && end > start) end -= Math.PI * 2;
@@ -217,7 +242,10 @@ export class WebGLPaintingContext implements PaintingContext {
   roundRect(x: number, y: number, w: number, h: number, radii: number | number[]): void {
     const r = typeof radii === 'number' ? radii : radii[0] || 0;
     const cr = Math.min(r, w / 2, h / 2);
-    if (cr <= 0) { this.rect(x, y, w, h); return; }
+    if (cr <= 0) {
+      this.rect(x, y, w, h);
+      return;
+    }
     const segs = 8;
     const corners = [
       { cx: x + w - cr, cy: y + cr, sa: -Math.PI / 2, ea: 0 },
@@ -238,59 +266,103 @@ export class WebGLPaintingContext implements PaintingContext {
   }
 
   // === 填充 ===
-  get fillStyle(): string | CanvasGradient | CanvasPattern { return this._state.fillStyle; }
-  set fillStyle(value: string | CanvasGradient | CanvasPattern) { this._state.fillStyle = value; }
+  get fillStyle(): string | CanvasGradient | CanvasPattern {
+    return this._state.fillStyle;
+  }
+  set fillStyle(value: string | CanvasGradient | CanvasPattern) {
+    this._state.fillStyle = value;
+  }
 
   fill(): void {
     if (this._pathPoints.length < 6) return; // 至少 3 个点
     const triangles = this._triangulate(this._pathPoints);
     if (triangles.length === 0) return;
-    const color = typeof this._state.fillStyle === 'string'
-      ? parseColor(this._state.fillStyle) : [0, 0, 0, 1] as [number, number, number, number];
+    const color =
+      typeof this._state.fillStyle === 'string'
+        ? parseColor(this._state.fillStyle)
+        : ([0, 0, 0, 1] as [number, number, number, number]);
     this._drawTriangles(triangles, color);
   }
 
   fillRect(x: number, y: number, w: number, h: number): void {
     const verts = [x, y, x + w, y, x + w, y + h, x, y, x + w, y + h, x, y + h];
-    const color = typeof this._state.fillStyle === 'string'
-      ? parseColor(this._state.fillStyle) : [0, 0, 0, 1] as [number, number, number, number];
+    const color =
+      typeof this._state.fillStyle === 'string'
+        ? parseColor(this._state.fillStyle)
+        : ([0, 0, 0, 1] as [number, number, number, number]);
     this._drawTriangles(verts, color);
   }
 
   // === 描边 ===
-  get strokeStyle(): string | CanvasGradient | CanvasPattern { return this._state.strokeStyle; }
-  set strokeStyle(value: string | CanvasGradient | CanvasPattern) { this._state.strokeStyle = value; }
-  get lineWidth(): number { return this._state.lineWidth; }
-  set lineWidth(value: number) { this._state.lineWidth = value; }
+  get strokeStyle(): string | CanvasGradient | CanvasPattern {
+    return this._state.strokeStyle;
+  }
+  set strokeStyle(value: string | CanvasGradient | CanvasPattern) {
+    this._state.strokeStyle = value;
+  }
+  get lineWidth(): number {
+    return this._state.lineWidth;
+  }
+  set lineWidth(value: number) {
+    this._state.lineWidth = value;
+  }
 
   stroke(): void {
     if (this._pathPoints.length < 4) return;
-    const color = typeof this._state.strokeStyle === 'string'
-      ? parseColor(this._state.strokeStyle) : [0, 0, 0, 1] as [number, number, number, number];
+    const color =
+      typeof this._state.strokeStyle === 'string'
+        ? parseColor(this._state.strokeStyle)
+        : ([0, 0, 0, 1] as [number, number, number, number]);
     const hw = this._state.lineWidth / 2;
     const verts: number[] = [];
     for (let i = 0; i < this._pathPoints.length - 2; i += 2) {
-      const x0 = this._pathPoints[i], y0 = this._pathPoints[i + 1];
-      const x1 = this._pathPoints[i + 2], y1 = this._pathPoints[i + 3];
-      const dx = x1 - x0, dy = y1 - y0;
+      const x0 = this._pathPoints[i],
+        y0 = this._pathPoints[i + 1];
+      const x1 = this._pathPoints[i + 2],
+        y1 = this._pathPoints[i + 3];
+      const dx = x1 - x0,
+        dy = y1 - y0;
       const len = Math.sqrt(dx * dx + dy * dy);
       if (len === 0) continue;
-      const nx = -dy / len * hw, ny = dx / len * hw;
+      const nx = (-dy / len) * hw,
+        ny = (dx / len) * hw;
       verts.push(
-        x0 + nx, y0 + ny, x1 + nx, y1 + ny, x1 - nx, y1 - ny,
-        x0 + nx, y0 + ny, x1 - nx, y1 - ny, x0 - nx, y0 - ny,
+        x0 + nx,
+        y0 + ny,
+        x1 + nx,
+        y1 + ny,
+        x1 - nx,
+        y1 - ny,
+        x0 + nx,
+        y0 + ny,
+        x1 - nx,
+        y1 - ny,
+        x0 - nx,
+        y0 - ny
       );
     }
     if (verts.length > 0) this._drawTriangles(verts, color);
   }
 
   // === 文本（离屏 Canvas 2D 光栅化 → WebGL 纹理） ===
-  get font(): string { return this._state.font; }
-  set font(value: string) { this._state.font = value; }
-  get textBaseline(): CanvasTextBaseline { return this._state.textBaseline; }
-  set textBaseline(value: CanvasTextBaseline) { this._state.textBaseline = value; }
-  get textAlign(): CanvasTextAlign { return this._state.textAlign; }
-  set textAlign(value: CanvasTextAlign) { this._state.textAlign = value; }
+  get font(): string {
+    return this._state.font;
+  }
+  set font(value: string) {
+    this._state.font = value;
+  }
+  get textBaseline(): CanvasTextBaseline {
+    return this._state.textBaseline;
+  }
+  set textBaseline(value: CanvasTextBaseline) {
+    this._state.textBaseline = value;
+  }
+  get textAlign(): CanvasTextAlign {
+    return this._state.textAlign;
+  }
+  set textAlign(value: CanvasTextAlign) {
+    this._state.textAlign = value;
+  }
 
   fillText(text: string, x: number, y: number, _maxWidth?: number): void {
     if (!text) return;
@@ -384,7 +456,7 @@ export class WebGLPaintingContext implements PaintingContext {
 
     gl.enable(gl.STENCIL_TEST);
     // 将 clip 路径区域的 stencil 值递增
-    gl.stencilFunc(gl.ALWAYS, this._clipDepth, 0xFF);
+    gl.stencilFunc(gl.ALWAYS, this._clipDepth, 0xff);
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
     gl.colorMask(false, false, false, false);
 
@@ -395,24 +467,44 @@ export class WebGLPaintingContext implements PaintingContext {
     }
 
     gl.colorMask(true, true, true, true);
-    // 后续绘制只在 stencil >= clipDepth 的区域通过
-    gl.stencilFunc(gl.LEQUAL, this._clipDepth, 0xFF);
+    // 后续绘制只在当前 clip 区域通过；使用 EQUAL，避免未裁剪区域（stencil=0）错误通过
+    gl.stencilFunc(gl.EQUAL, this._clipDepth, 0xff);
     gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
   }
 
   // === 透明度 ===
-  get globalAlpha(): number { return this._state.globalAlpha; }
-  set globalAlpha(value: number) { this._state.globalAlpha = value; }
+  get globalAlpha(): number {
+    return this._state.globalAlpha;
+  }
+  set globalAlpha(value: number) {
+    this._state.globalAlpha = value;
+  }
 
   // === 阴影（简化：不实现模糊，仅偏移） ===
-  get shadowColor(): string { return this._state.shadowColor; }
-  set shadowColor(value: string) { this._state.shadowColor = value; }
-  get shadowOffsetX(): number { return this._state.shadowOffsetX; }
-  set shadowOffsetX(value: number) { this._state.shadowOffsetX = value; }
-  get shadowOffsetY(): number { return this._state.shadowOffsetY; }
-  set shadowOffsetY(value: number) { this._state.shadowOffsetY = value; }
-  get shadowBlur(): number { return this._state.shadowBlur; }
-  set shadowBlur(value: number) { this._state.shadowBlur = value; }
+  get shadowColor(): string {
+    return this._state.shadowColor;
+  }
+  set shadowColor(value: string) {
+    this._state.shadowColor = value;
+  }
+  get shadowOffsetX(): number {
+    return this._state.shadowOffsetX;
+  }
+  set shadowOffsetX(value: number) {
+    this._state.shadowOffsetX = value;
+  }
+  get shadowOffsetY(): number {
+    return this._state.shadowOffsetY;
+  }
+  set shadowOffsetY(value: number) {
+    this._state.shadowOffsetY = value;
+  }
+  get shadowBlur(): number {
+    return this._state.shadowBlur;
+  }
+  set shadowBlur(value: number) {
+    this._state.shadowBlur = value;
+  }
 
   // === 渐变（返回 CanvasGradient，实际绘制时降级为纯色） ===
   createLinearGradient(x0: number, y0: number, x1: number, y1: number): CanvasGradient {
@@ -444,13 +536,10 @@ export class WebGLPaintingContext implements PaintingContext {
     const n = points.length / 2;
     if (n < 3) return [];
     const tris: number[] = [];
-    const x0 = points[0], y0 = points[1];
+    const x0 = points[0],
+      y0 = points[1];
     for (let i = 1; i < n - 1; i++) {
-      tris.push(
-        x0, y0,
-        points[i * 2], points[i * 2 + 1],
-        points[(i + 1) * 2], points[(i + 1) * 2 + 1],
-      );
+      tris.push(x0, y0, points[i * 2], points[i * 2 + 1], points[(i + 1) * 2], points[(i + 1) * 2 + 1]);
     }
     return tris;
   }
@@ -529,8 +618,14 @@ export class WebGLPaintingContext implements PaintingContext {
   /** 用 texture shader 绘制纹理矩形 */
   private _drawTexturedRect(
     source: CanvasImageSource,
-    sx: number, sy: number, sw: number, sh: number,
-    dx: number, dy: number, dw: number, dh: number,
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number
   ): void {
     const gl = this._gl;
     const prog = this._shaders.texture;
@@ -549,8 +644,10 @@ export class WebGLPaintingContext implements PaintingContext {
 
     const imgW = (source as any).width || sw;
     const imgH = (source as any).height || sh;
-    const u0 = sx / imgW, v0 = sy / imgH;
-    const u1 = (sx + sw) / imgW, v1 = (sy + sh) / imgH;
+    const u0 = sx / imgW,
+      v0 = sy / imgH;
+    const u1 = (sx + sw) / imgW,
+      v1 = (sy + sh) / imgH;
 
     this._uploadTexRect(dx, dy, dw, dh, u0, v0, u1, v1);
 
@@ -571,9 +668,21 @@ export class WebGLPaintingContext implements PaintingContext {
 
   /** 绘制已缓存的文本纹理 */
   private _drawCachedTexturedRect(
-    entry: { tex: WebGLTexture; texW: number; texH: number; cssW: number; cssH: number; canvasW: number; canvasH: number },
-    texW: number, texH: number,
-    dx: number, dy: number, dw: number, dh: number,
+    entry: {
+      tex: WebGLTexture;
+      texW: number;
+      texH: number;
+      cssW: number;
+      cssH: number;
+      canvasW: number;
+      canvasH: number;
+    },
+    texW: number,
+    texH: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number
   ): void {
     const gl = this._gl;
     const prog = this._shaders.texture;
@@ -603,16 +712,40 @@ export class WebGLPaintingContext implements PaintingContext {
 
   /** 上传纹理矩形顶点到 VBO（预分配缓冲区） */
   private _uploadTexRect(
-    dx: number, dy: number, dw: number, dh: number,
-    u0: number, v0: number, u1: number, v1: number,
+    dx: number,
+    dy: number,
+    dw: number,
+    dh: number,
+    u0: number,
+    v0: number,
+    u1: number,
+    v1: number
   ): void {
     const d = this._texRectBuf;
-    d[0] = dx;      d[1] = dy;      d[2] = u0; d[3] = v0;
-    d[4] = dx + dw; d[5] = dy;      d[6] = u1; d[7] = v0;
-    d[8] = dx + dw; d[9] = dy + dh; d[10] = u1; d[11] = v1;
-    d[12] = dx;     d[13] = dy;     d[14] = u0; d[15] = v0;
-    d[16] = dx + dw; d[17] = dy + dh; d[18] = u1; d[19] = v1;
-    d[20] = dx;     d[21] = dy + dh; d[22] = u0; d[23] = v1;
+    d[0] = dx;
+    d[1] = dy;
+    d[2] = u0;
+    d[3] = v0;
+    d[4] = dx + dw;
+    d[5] = dy;
+    d[6] = u1;
+    d[7] = v0;
+    d[8] = dx + dw;
+    d[9] = dy + dh;
+    d[10] = u1;
+    d[11] = v1;
+    d[12] = dx;
+    d[13] = dy;
+    d[14] = u0;
+    d[15] = v0;
+    d[16] = dx + dw;
+    d[17] = dy + dh;
+    d[18] = u1;
+    d[19] = v1;
+    d[20] = dx;
+    d[21] = dy + dh;
+    d[22] = u0;
+    d[23] = v1;
 
     const gl = this._gl;
     gl.bindBuffer(gl.ARRAY_BUFFER, this._vbo);

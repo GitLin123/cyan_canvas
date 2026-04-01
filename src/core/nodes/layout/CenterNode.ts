@@ -1,6 +1,5 @@
 /**
  * Center 容器 - 在中心放置单个子节点
- * 相当于 Flutter 的 Center
  * 如果指定了尺寸，在该尺寸范围内居中子节点；否则占满父容器并居中。
  */
 
@@ -12,6 +11,7 @@ import { LAYOUT } from '../../types/constants';
 
 export class CenterNode extends SingleChildLayoutNode {
   performLayout(constraints: BoxConstraints): Size {
+    // 约束无效时，返回默认尺寸
     if (!BoxConstraintsHelper.isValid(constraints)) {
       return { width: LAYOUT.FALLBACK_WIDTH, height: LAYOUT.FALLBACK_HEIGHT };
     }

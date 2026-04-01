@@ -61,7 +61,6 @@ function buildSTR(entries: LeafEntry[]): RTreeNode {
     }
   }
 
-  // recursively build upper levels
   return buildUpper(childNodes);
 }
 

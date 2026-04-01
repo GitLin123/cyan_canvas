@@ -196,7 +196,6 @@ export abstract class RenderNode implements CyanEventHandlers {
     this.markNeedsLayout();
   }
 
-  /** Set position without triggering markNeedsLayout (for use during performLayout) */
   setPosition(x: number, y: number) {
     this._x = x;
     this._y = y;
@@ -300,14 +299,14 @@ export abstract class RenderNode implements CyanEventHandlers {
       constraints = BoxConstraintsHelper.loose(constraints.maxWidth || 800, constraints.maxHeight || 600);
     }
 
-    // Determine relayout boundary
+    // 确定布局边界：如果是根节点或约束无变化，设为当前节点
     const isRelayoutBoundary =
       this.parent === null ||
       (constraints.minWidth === constraints.maxWidth && constraints.minHeight === constraints.maxHeight);
 
     const relayoutBoundary = isRelayoutBoundary ? this : this.parent!._relayoutBoundary!;
 
-    // Skip layout if not dirty and constraints unchanged
+    // 跳过无变化布局
     if (
       !this._needsLayout &&
       this._relayoutBoundary === relayoutBoundary &&
@@ -328,6 +327,7 @@ export abstract class RenderNode implements CyanEventHandlers {
     this._performLayoutAndClamp(this._constraints);
   }
 
+  // 执行布局并将结果约束到约束范围
   private _performLayoutAndClamp(constraints: BoxConstraints) {
     const preferred = this.performLayout(constraints);
     this._width = Math.max(
@@ -357,8 +357,6 @@ export abstract class RenderNode implements CyanEventHandlers {
       o.maxHeight === c.maxHeight
     );
   }
-
-  // --- Paint ---
 
   /** 给子类覆写 paint 时使用，清除本节点 paint 脏标记 */
   protected markPaintClean() {

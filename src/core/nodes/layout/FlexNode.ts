@@ -1,6 +1,5 @@
 /**
  * Flex 容器 - 灵活的布局容器（基类）
- * 相当于 Flutter 的 Flex，是 Row 和 Column 的基类
  * FlexNode 负责根据主轴方向（direction）和对齐方式（mainAxisAlignment、crossAxisAlignment）来布局子节点。
  * 它会先根据子节点的 flex 属性分配剩余空间，然后根据对齐方式计算子节点的位置。
  */

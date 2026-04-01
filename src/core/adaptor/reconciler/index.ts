@@ -46,7 +46,7 @@ export const CyanRenderer = {
     });
   },
 
-  // 卸载：把 fiber 树卸载（置空），并清理容器引用
+  // 把 fiber 树卸载（置空），并清理容器引用
   unmount(engine: any) {
     try {
       if (engine && engine._reactContainer) {
